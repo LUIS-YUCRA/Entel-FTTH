@@ -1,0 +1,145 @@
+.perfil-admin{
+    min-height:100vh;
+    background:#eef5ff;
+    display:flex;
+    flex-direction:column;
+}
+
+.perfil-admin-content{
+    flex:1;
+    padding:35px;
+    max-width:1400px;
+    margin:auto;
+    width:100%;
+}
+
+.perfil-admin-content h1{
+    color:#173c7a;
+    margin-bottom:25px;
+}
+
+.admin-profile-card{
+    background:white;
+    border-radius:20px;
+    padding:30px;
+    display:flex;
+    align-items:center;
+    gap:25px;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+.admin-avatar svg{
+    font-size:110px;
+    color:#3456c8;
+}
+
+.admin-info-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:25px;
+    margin-top:25px;
+}
+
+.info-card{
+    background:white;
+    padding:25px;
+    border-radius:20px;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+.info-card h3{
+    color:#173c7a;
+    margin-bottom:20px;
+}
+
+.info-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:15px;
+}
+
+.info-row svg{
+    color:#3456c8;
+}
+
+.admin-stats{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:20px;
+    margin-top:25px;
+}
+
+.stat-box{
+    background:white;
+    padding:25px;
+    border-radius:20px;
+    text-align:center;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+.stat-box svg{
+    font-size:35px;
+    color:#3456c8;
+}
+
+.stat-box h2{
+    margin:15px 0;
+    color:#173c7a;
+}
+
+.activity-card{
+    background:white;
+    margin-top:30px;
+    border-radius:20px;
+    padding:25px;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+.activity-card table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
+}
+
+.activity-card thead{
+    background:#3456c8;
+    color:white;
+}
+
+.activity-card th,
+.activity-card td{
+    padding:15px;
+    text-align:center;
+}
+
+.activity-card tbody tr{
+    border-bottom:1px solid #eee;
+}
+
+@media(max-width:1000px){
+
+    .admin-info-grid{
+        grid-template-columns:1fr;
+    }
+
+    .admin-stats{
+        grid-template-columns:repeat(2,1fr);
+    }
+}
+
+@media(max-width:768px){
+
+    .admin-profile-card{
+        flex-direction:column;
+        text-align:center;
+    }
+
+    .admin-stats{
+        grid-template-columns:1fr;
+    }
+
+    .activity-card{
+        overflow-x:auto;
+    }
+}

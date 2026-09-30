@@ -1,0 +1,11 @@
+/* Shared readable text sizes across operational screens. */
+body{font-size:16px;line-height:1.5}
+body :is(.mis-tickets-page,.perfil-tecnico,.usuarios-admin,.notifications-page) :is(label,td,input,select,textarea,button){font-size:15px}
+body :is(.mis-tickets-page,.perfil-tecnico,.usuarios-admin,.notifications-page) :is(small,dt,th){font-size:13px}
+body .technician-detail-card :is(p,label,button,dd){font-size:15px}
+body .profile-editor :is(label,input,select,button){font-size:16px}
+body .technician-actions button:disabled{opacity:.42;cursor:not-allowed;filter:grayscale(.5)}
+body .technician-table-scroll{overflow-x:auto}
+body .role-sidebar :is(.sidebar-user-copy span,.sidebar-support span){font-size:13px}
+body :is(.notifications-shell,.tickets-container,.cliente-dashboard) :is(label,td,input,select,textarea,button,p){font-size:16px}
+body :is(.notifications-shell,.tickets-container) :is(small,dt,th){font-size:14px}

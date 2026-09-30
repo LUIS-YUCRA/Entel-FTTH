@@ -1,0 +1,9 @@
+.entel-loading { position: fixed; inset: 0; z-index: 10000; display: grid; place-items: center; background: #692ba5; color: #fff; }
+.entel-loading-center { text-align: center; padding: 24px; }
+.entel-loading-bars { height: 52px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.entel-loading-bars i { display: block; width: 5px; height: calc(18px + var(--bar) * 6px); border-radius: 5px; background: #fff; animation: entel-signal 1s ease-in-out infinite; animation-delay: calc(var(--bar) * .12s); }
+.entel-loading p { margin: 24px 0 8px; font-size: 14px; color: #fff; }
+.entel-loading small { color: #ede0fa; font-size: 13px; }
+@keyframes entel-signal { 0%, 100% { transform: scaleY(.55); opacity: .6; } 50% { transform: scaleY(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .entel-loading-bars i { animation: none; } }
+

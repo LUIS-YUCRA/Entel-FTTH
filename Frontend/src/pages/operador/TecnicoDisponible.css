@@ -1,0 +1,163 @@
+.tecnicos-page{
+    min-height:100vh;
+    background:#eef5ff;
+    display:flex;
+    flex-direction:column;
+}
+
+.tecnicos-content{
+    flex:1;
+    padding:30px;
+    padding-bottom:140px;
+}
+
+.page-title h1{
+    color:#173c7a;
+    margin-bottom:5px;
+}
+
+.page-title p{
+    color:#666;
+}
+
+/* KPI */
+
+.stats-grid{
+    margin-top:25px;
+
+    display:grid;
+    grid-template-columns:
+    repeat(auto-fit,minmax(230px,1fr));
+
+    gap:20px;
+}
+
+.stat-card{
+    background:white;
+    padding:25px;
+    border-radius:18px;
+    text-align:center;
+    box-shadow:0 4px 15px rgba(0,0,0,.08);
+}
+
+.stat-card svg{
+    font-size:35px;
+    color:#3456c8;
+}
+
+.stat-card h2{
+    margin:12px 0;
+    color:#173c7a;
+}
+
+/* BUSCADOR */
+
+.search-box{
+    margin-top:30px;
+    background:white;
+    border-radius:14px;
+    padding:14px 20px;
+
+    display:flex;
+    align-items:center;
+    gap:12px;
+
+    box-shadow:0 4px 15px rgba(0,0,0,.08);
+}
+
+.search-box input{
+    border:none;
+    outline:none;
+    width:100%;
+    font-size:15px;
+}
+
+/* TARJETAS */
+
+.tecnicos-grid{
+    margin-top:30px;
+
+    display:grid;
+    grid-template-columns:
+    repeat(auto-fit,minmax(320px,1fr));
+
+    gap:25px;
+}
+
+.tecnico-card{
+    background:white;
+    border-radius:20px;
+    padding:25px;
+
+    box-shadow:0 4px 15px rgba(0,0,0,.08);
+
+    transition:.3s;
+}
+
+.tecnico-card:hover{
+    transform:translateY(-5px);
+}
+
+.tecnico-avatar{
+    font-size:55px;
+    text-align:center;
+}
+
+.tecnico-card h3{
+    text-align:center;
+    margin:15px 0;
+    color:#173c7a;
+}
+
+.estado{
+    display:block;
+    text-align:center;
+    margin-bottom:20px;
+    padding:8px;
+    border-radius:30px;
+    font-weight:600;
+}
+
+.disponible{
+    background:#dff7e3;
+    color:#198754;
+}
+
+.ocupado{
+    background:#ffe4e4;
+    color:#dc3545;
+}
+
+.info-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:12px 0;
+    color:#555;
+}
+
+.efficiency{
+    margin-top:15px;
+    font-weight:700;
+    color:#173c7a;
+}
+
+.assign-btn{
+    width:100%;
+    margin-top:20px;
+
+    border:none;
+    background:#3456c8;
+    color:white;
+
+    padding:12px;
+
+    border-radius:12px;
+
+    cursor:pointer;
+}
+
+.assign-btn:hover{
+    background:#2445b5;
+}
+.technician-photo{display:grid;justify-items:center;gap:8px}.technician-photo img,.technician-photo .tecnico-avatar{width:96px;height:96px;border-radius:50%;object-fit:cover;border:4px solid #d8eff7}.tecnico-card .info-row{overflow-wrap:anywhere}

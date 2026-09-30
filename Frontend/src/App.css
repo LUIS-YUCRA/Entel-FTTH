@@ -1,0 +1,756 @@
+:root {
+  font-family: Arial, Helvetica, sans-serif;
+  color: #172033;
+  background: #f3f7fb;
+  font-synthesis: none;
+  --entel-navy: #062d57;
+  --entel-blue: #078ec8;
+  --entel-cyan: #05add5;
+  --surface: #fff;
+  --surface-soft: #f7f9fc;
+  --border: #dfe7f0;
+  --text: #172033;
+  --muted: #6d7b8f;
+  --success: #15966f;
+  --warning: #e7a21a;
+  --danger: #ed5d5d;
+  --shadow: 0 8px 28px rgba(27, 57, 88, .08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: #f3f7fb;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 85% 0%, rgba(5, 173, 213, .06), transparent 28%),
+    #f3f7fb;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.cliente-container,
+.tickets-container,
+.perfil-container,
+.operador-container,
+.tickets-operador,
+.tecnicos-page,
+.perfil-operador,
+.tecnico-dashboard,
+.mis-tickets-page,
+.historial-page,
+.perfil-tecnico,
+.admin-dashboard,
+.reportes-admin,
+.config-admin,
+.usuarios-admin,
+.perfil-admin {
+  min-height: 100vh;
+  padding-left: 256px;
+  background: transparent !important;
+}
+
+.dashboard-content,
+.tickets-content,
+.tecnicos-content,
+.perfil-content,
+.tecnico-content,
+.mis-tickets-content,
+.historial-content,
+.admin-content,
+.reportes-content,
+.config-content,
+.usuarios-content,
+.perfil-admin-content,
+.perfil-main {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 30px clamp(20px, 3vw, 44px) 54px !important;
+}
+
+main h1 {
+  margin: 0;
+  color: #142238;
+  font-size: clamp(25px, 2vw, 34px);
+  line-height: 1.2;
+  letter-spacing: -.035em;
+}
+
+main h2 {
+  color: #1c2d44;
+}
+
+.welcome-box,
+.welcome-card,
+.admin-welcome,
+.page-title,
+.reportes-header,
+.config-header,
+.usuarios-header {
+  margin-bottom: 24px !important;
+}
+
+.welcome-box p,
+.welcome-card p,
+.admin-welcome p,
+.page-title p,
+.reportes-header p,
+.config-header p {
+  margin: 7px 0 0;
+  color: var(--muted) !important;
+}
+
+.cards-grid,
+.stats-grid,
+.admin-stats,
+.reportes-kpis,
+.usuarios-stats {
+  gap: 16px !important;
+}
+
+.card,
+.stat-card,
+.admin-card,
+.kpi-card,
+.stat-box {
+  position: relative;
+  overflow: hidden;
+  min-height: 132px;
+  padding: 20px !important;
+  border: 1px solid var(--border);
+  border-radius: 15px !important;
+  background: var(--surface);
+  box-shadow: var(--shadow) !important;
+  text-align: left !important;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.card::before,
+.stat-card::before,
+.admin-card::before,
+.kpi-card::before,
+.stat-box::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: linear-gradient(#05add5, #078ec8);
+}
+
+.card:hover,
+.stat-card:hover,
+.admin-card:hover,
+.kpi-card:hover,
+.stat-box:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 14px 34px rgba(27, 57, 88, .12) !important;
+}
+
+.card svg,
+.stat-card svg,
+.admin-card svg,
+.kpi-card svg,
+.stat-box svg {
+  color: var(--entel-blue) !important;
+  font-size: 23px !important;
+}
+
+.card h2,
+.stat-card h2,
+.admin-card h2,
+.kpi-card h2,
+.stat-box h2 {
+  margin: 14px 0 4px !important;
+  color: #172033 !important;
+  font-size: 29px !important;
+  line-height: 1;
+}
+
+.card span,
+.stat-card span,
+.admin-card span,
+.kpi-card span,
+.stat-box span {
+  color: var(--muted) !important;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.table-card,
+.admin-table,
+.table-container,
+.report-card,
+.resumen-card,
+.panel-box,
+.config-card,
+.perfil-card,
+.info-card,
+.actividad-card,
+.activity-card,
+.filters-card,
+.search-card {
+  border: 1px solid var(--border) !important;
+  border-radius: 15px !important;
+  background: var(--surface) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.table-card,
+.admin-table,
+.table-container {
+  overflow: hidden;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #34445a;
+  background: #fff;
+}
+
+thead {
+  color: #6d7b8f !important;
+  background: #f6f8fb !important;
+}
+
+th {
+  padding: 13px 15px !important;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .035em;
+  text-align: left !important;
+  text-transform: uppercase;
+}
+
+td {
+  padding: 14px 15px !important;
+  border-bottom: 1px solid #edf1f5;
+  font-size: 13px;
+  text-align: left !important;
+}
+
+tbody tr {
+  transition: background .15s ease;
+}
+
+tbody tr:hover {
+  background: #f7fbfe;
+}
+
+input,
+select,
+textarea {
+  color: #25364d;
+  border: 1px solid #d8e2ec;
+  outline: none;
+  background: #fff;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #29a9d2;
+  box-shadow: 0 0 0 3px rgba(5, 173, 213, .12);
+}
+
+.search-box {
+  border: 1px solid #d8e2ec !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.search-box svg {
+  color: #91a1b5;
+}
+
+.estado,
+.prioridad {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 76px;
+  padding: 5px 9px !important;
+  border: 1px solid transparent;
+  border-radius: 999px !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: .025em;
+  text-transform: uppercase;
+}
+
+.estado.pendiente,
+.pendiente {
+  color: #9a6800 !important;
+  border-color: #f6d690;
+  background: #fff7df !important;
+}
+
+.estado.asignado,
+.estado.en_proceso,
+.asignado,
+.en_proceso {
+  color: #0874ad !important;
+  border-color: #9dd8ec;
+  background: #e9f8fd !important;
+}
+
+.estado.resuelto,
+.estado.cerrado,
+.resuelto,
+.cerrado,
+.estado.activo,
+.disponible {
+  color: #127355 !important;
+  border-color: #9fdcc8;
+  background: #e9f8f2 !important;
+}
+
+.estado.cancelado,
+.estado.inactivo {
+  color: #a13c3c !important;
+  border-color: #f1b5b5;
+  background: #fff0f0 !important;
+}
+
+.prioridad.alta,
+.alta {
+  color: #bd3d3d !important;
+  border-color: #f3b4b4;
+  background: #fff0f0 !important;
+}
+
+.prioridad.media,
+.media {
+  color: #a56c00 !important;
+  border-color: #f2d08b;
+  background: #fff6df !important;
+}
+
+.prioridad.baja,
+.baja {
+  color: #137454 !important;
+  border-color: #a5dec9;
+  background: #edf9f4 !important;
+}
+
+.footer {
+  width: auto !important;
+  margin: 18px clamp(20px, 3vw, 44px) 24px !important;
+  padding: 14px 18px !important;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  color: #65758a;
+  background: rgba(255, 255, 255, .78) !important;
+  box-shadow: none;
+}
+
+.footer-logo img {
+  width: 82px !important;
+}
+
+.footer-info {
+  color: #65758a !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+}
+
+.footer-social a {
+  color: #718197 !important;
+}
+
+.route-loading {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  color: var(--entel-blue);
+  background: #f3f7fb;
+  font-weight: 700;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #edf2f7;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  background: #afc5d8;
+}
+
+::selection {
+  color: #0d2a42;
+  background: rgba(5, 173, 213, .22);
+}
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid #00a9ce;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .cliente-container,
+  .tickets-container,
+  .perfil-container,
+  .operador-container,
+  .tickets-operador,
+  .tecnicos-page,
+  .perfil-operador,
+  .tecnico-dashboard,
+  .mis-tickets-page,
+  .historial-page,
+  .perfil-tecnico,
+  .admin-dashboard,
+  .reportes-admin,
+  .config-admin,
+  .usuarios-admin,
+  .perfil-admin {
+    padding-left: 0;
+  }
+
+  .footer {
+    margin-inline: 16px !important;
+  }
+
+}
+
+/* Ajustes adaptables: solo se aplican en tablet y móvil. */
+@media (max-width: 900px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  .cliente-container,
+  .tickets-container,
+  .perfil-container,
+  .operador-container,
+  .tickets-operador,
+  .tecnicos-page,
+  .perfil-operador,
+  .mis-tickets-page,
+  .historial-page,
+  .perfil-tecnico,
+  .admin-dashboard,
+  .reportes-admin,
+  .usuarios-admin,
+  .perfil-admin,
+  .notifications-shell {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .dashboard-content,
+  .tickets-content,
+  .tecnicos-content,
+  .perfil-content,
+  .tecnico-content,
+  .mis-tickets-content,
+  .historial-content,
+  .admin-content,
+  .reportes-content,
+  .usuarios-content,
+  .perfil-admin-content,
+  .perfil-main,
+  .cliente-main,
+  .operator-profile-main,
+  .notifications-main {
+    min-width: 0;
+    max-width: 100%;
+    padding: 22px 16px 54px !important;
+  }
+
+  .table-card,
+  .admin-table,
+  .table-container,
+  .activity-card,
+  .resumen-card,
+  .dashboard-table-wrap,
+  .history-table-wrap,
+  .technician-table-scroll {
+    max-width: 100%;
+    overflow-x: auto !important;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tecnicos-grid,
+  .reportes-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)) !important;
+  }
+
+  .profile-editor-dialog,
+  .shared-evidence-modal,
+  .evidence-preview-modal,
+  .technician-modal,
+  .user-modal {
+    max-width: calc(100vw - 24px);
+  }
+}
+
+@media (max-width: 640px) {
+  .role-sidebar {
+    gap: 6px;
+    padding: 8px 10px;
+  }
+
+  .sidebar-link,
+  .sidebar-user button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .dashboard-content,
+  .tickets-content,
+  .tecnicos-content,
+  .perfil-content,
+  .tecnico-content,
+  .mis-tickets-content,
+  .historial-content,
+  .admin-content,
+  .reportes-content,
+  .usuarios-content,
+  .perfil-admin-content,
+  .perfil-main,
+  .cliente-main,
+  .operator-profile-main,
+  .notifications-main {
+    padding: 18px 12px 46px !important;
+  }
+
+  main h1 {
+    font-size: 25px;
+  }
+
+  input,
+  select,
+  textarea {
+    max-width: 100%;
+    font-size: 16px !important;
+  }
+
+  .cards-grid,
+  .stats-grid,
+  .admin-stats,
+  .reportes-kpis,
+  .usuarios-stats,
+  .client-kpis,
+  .client-ticket-kpis,
+  .technician-kpis,
+  .technician-stats,
+  .operator-kpis,
+  .notification-stats {
+    grid-template-columns: 1fr !important;
+  }
+
+  .assistant-chat-layout,
+  .assistant-card.history-open .assistant-chat-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .conversation-history,
+  .assistant-card.history-open .conversation-history,
+  .assistant-card:not(.history-open) .conversation-history {
+    width: 100%;
+    max-height: 0;
+    border-right: 0;
+    border-bottom: 0;
+    transition: max-height .2s ease, visibility .2s ease;
+  }
+
+  .assistant-card.history-open .conversation-history {
+    max-height: 300px;
+    border-bottom: 1px solid var(--border);
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .assistant-card.history-open .conversation-history > * {
+    opacity: 1;
+  }
+
+  .conversation-history-list {
+    max-height: 230px;
+  }
+
+  .assistant-box,
+  .assistant-card-header {
+    padding-inline: 12px !important;
+  }
+
+  .chat-message {
+    max-width: 94%;
+  }
+
+  .history-preview-toolbar,
+  .preview-toolbar,
+  .client-ticket-detail-heading,
+  .history-table-title {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .history-preview-toolbar > div:last-child,
+  .preview-toolbar > div:last-child {
+    width: 100%;
+  }
+
+  .history-preview-toolbar button,
+  .preview-toolbar button {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .footer-content {
+    gap: 10px;
+    flex-direction: column;
+  }
+}
+
+/* Shared layout: reserve space for the fixed mobile navigation. */
+@media (max-width: 900px) {
+  #route-content:has(.role-sidebar) { padding-top: 116px; }
+  .role-sidebar { padding: 10px 12px; gap: 8px 12px; }
+  main { min-width: 0; }
+  main > *, .datos-section, .datos-grid, .input-group { min-width: 0; }
+  .client-pagination-controls { flex-wrap: wrap; gap: 12px; }
+  .client-pagination button, .client-pagination select { min-width: 44px; min-height: 44px; }
+  .client-ticket-detail-grid { grid-template-columns: minmax(0, 1fr); }
+  .client-ticket-detail-heading > div { flex-wrap: wrap; }
+}
+@media (min-width: 360px) and (max-width: 640px) {
+  .cliente-main .client-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .cliente-main .client-kpis article { padding: 12px; gap: 8px; }
+  .client-kpis article > svg { flex-shrink: 0; width: 30px; height: 30px; padding: 8px; }
+}
+@media (max-width: 640px) {
+  .role-sidebar .sidebar-link { min-width: 0; }
+  .datos-section { padding: 18px; }
+  .datos-grid input, .datos-grid select { width: 100%; min-width: 0; }
+  .admin-panels { grid-template-columns: minmax(0, 1fr); }
+  .admin-profile-card, .technician-hero { overflow-wrap: anywhere; }
+  .client-ticket-toolbar, .client-tickets-heading { flex-wrap: wrap; gap: 12px; }
+  .client-ticket-toolbar .search-box { width: 100%; min-width: 0; }
+  .client-ticket-detail { padding: 16px; }
+  .client-ticket-detail-grid > div { min-width: 0; overflow-wrap: anywhere; }
+}
+
+@media (max-width: 900px) { html { scroll-padding-top: 132px; } }
+
+/* Customer phone layouts only; desktop retains its existing arrangement. */
+.mobile-history-backdrop { display: none; }
+@media (max-width: 640px) {
+  .cliente-main .client-page-heading {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center; gap: 8px;
+  }
+  .cliente-main .client-page-heading > div:first-child { min-width: 0; }
+  .cliente-main .client-page-heading .page-eyebrow { font-size: 9px; letter-spacing: .06em; }
+  .cliente-main .client-page-heading h1 { font-size: clamp(20px, 6vw, 25px); overflow-wrap: anywhere; }
+  .cliente-main .network-health { justify-self: end; gap: 6px; padding: 8px; font-size: 9px; white-space: nowrap; }
+  .cliente-main .network-health span { flex-shrink: 0; width: 6px; height: 6px; }
+
+  .tickets-content .client-tickets-heading { display: flex; flex-direction: column; align-items: stretch; gap: 14px; }
+  .tickets-content .client-tickets-heading .client-account-label { order: -1; align-self: flex-end; max-width: 100%; text-align: right; }
+  .tickets-content .client-account-label strong { overflow-wrap: anywhere; }
+
+  .cliente-main .assistant-card { position: relative; isolation: isolate; overflow: hidden; }
+  .cliente-main .assistant-card .conversation-history,
+  .cliente-main .assistant-card.history-open .conversation-history,
+  .cliente-main .assistant-card:not(.history-open) .conversation-history {
+    position: absolute; top: 0; bottom: 0; left: 0; z-index: 11;
+    display: flex; flex-direction: column; width: 50%; max-height: none;
+    height: 100%; margin: 0; border: 0; border-right: 1px solid #cddce8;
+    background: #f5f9fc; box-shadow: 8px 0 28px #062d5726;
+    transform: translateX(-100%); visibility: hidden; pointer-events: none;
+    transition: transform .2s ease, visibility .2s ease;
+  }
+  .cliente-main .assistant-card.history-open .conversation-history {
+    transform: translateX(0); visibility: visible; pointer-events: auto;
+  }
+  .cliente-main .conversation-history-heading { flex-shrink: 0; gap: 4px; padding: 12px 8px; }
+  .cliente-main .conversation-history-heading strong { font-size: 12px; line-height: 1.4; }
+  .cliente-main .conversation-history-heading button { flex-shrink: 0; }
+  .cliente-main .conversation-history-list { flex: 1; align-content: start; min-height: 0; max-height: none; padding: 6px; overflow-y: auto; overscroll-behavior: contain; }
+  .cliente-main .conversation-select { padding-left: 6px; }
+  .cliente-main .conversation-select small { white-space: normal; line-height: 1.5; }
+  .cliente-main .assistant-card .conversation-options { width: 32px; min-width: 32px; margin-right: 0; }
+  .cliente-main .mobile-history-backdrop { display: block; position: absolute; inset: 0; z-index: 10; border: 0; border-radius: 0; background: #08253e55; touch-action: pan-y; }
+  .cliente-main .assistant-card.history-open .history-toggle { position: absolute; top: 12px; left: calc(50% + 8px); z-index: 12; margin: 0; box-shadow: 0 3px 12px #062d5726; }
+}
+
+/* Compact ticket summary for phones, preserving the desktop grid. */
+@media (max-width: 640px) {
+  .tickets-content .client-ticket-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px;
+  }
+  .tickets-content .client-ticket-kpis article {
+    min-width: 0;
+    min-height: 78px;
+    gap: 8px;
+    padding: 12px 10px;
+  }
+  .tickets-content .client-ticket-kpis article > div { min-width: 0; }
+  .tickets-content .client-ticket-kpis svg {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    padding: 8px;
+  }
+  .tickets-content .client-ticket-kpis strong { font-size: 22px; }
+  .tickets-content .client-ticket-kpis span { line-height: 1.4; overflow-wrap: anywhere; }
+}
+
+@media (max-width: 640px) {
+  .notification-stats.client-notification-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px;
+  }
+  .client-notification-stats article { min-height: 78px; gap: 8px; padding: 12px 10px; }
+  .client-notification-stats article > div { min-width: 0; }
+  .client-notification-stats .stat-icon { width: 32px; height: 32px; }
+  .client-notification-stats strong { font-size: 22px; overflow-wrap: anywhere; }
+  .client-notification-stats article > div > span { font-size: 10px; line-height: 1.4; overflow-wrap: anywhere; }
+}

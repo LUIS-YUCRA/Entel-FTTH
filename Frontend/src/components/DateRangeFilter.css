@@ -1,0 +1,22 @@
+.date-range-filter{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px;padding:16px 20px;margin-bottom:20px;max-width:100%;min-width:0;box-sizing:border-box;background:#fff;border:1px solid #dfe7ef;border-radius:14px;box-shadow:0 4px 18px #173d6105;color:#183b57;overflow-x:auto}
+.date-presets{display:flex;flex:none;gap:4px;padding:4px;background:#eff5fa;border-radius:10px}
+.date-range-filter button{flex:none;cursor:pointer;border:0;border-radius:8px;padding:11px 13px;font:inherit;font-size:12px;font-weight:600;white-space:nowrap;transition:background .18s ease,color .18s ease,box-shadow .18s ease,transform .18s ease}
+.date-presets button{background:transparent;color:#476079}.date-presets button[aria-pressed=true]{color:#076ea4;background:#fff;box-shadow:0 2px 6px #183b5712}
+.date-presets button:hover{background:#d5effb;color:#005b8c;transform:translateY(-1px)}.date-presets button[aria-pressed=true]:hover{background:#e5f6ff}
+.date-range-filter form{display:flex;flex:1 1 460px;justify-content:flex-end;flex-wrap:nowrap;align-items:center;gap:12px;margin:0}
+.date-range-filter label{display:flex;align-items:center;gap:8px;white-space:nowrap;font-size:11px;font-weight:600}
+.date-range-filter input{width:132px;min-height:38px;box-sizing:border-box;padding:8px;border:1px solid #cedbe6;border-radius:8px;background:#fff;color:#183b57;font:inherit;transition:border-color .18s,box-shadow .18s}.date-range-filter input:hover{border-color:#36a5d4}
+.date-range-filter button[type=submit]{background:#087caf;color:#fff;min-height:38px}.date-range-filter button[type=submit]:hover{background:#05608c;box-shadow:0 4px 10px #087caf25;transform:translateY(-1px)}.date-range-filter button:active{transform:translateY(0)}
+.date-range-filter button:disabled{opacity:.5;cursor:not-allowed;transform:none}.date-range-filter :focus-visible{outline:3px solid #6bbfe6;outline-offset:2px}.date-range-filter>p{color:#b42338;font-size:12px}
+@media(max-width:1200px){.date-range-filter{gap:12px;padding:14px}.date-range-filter label{gap:5px}.date-range-filter button{padding:10px}.date-range-filter form{gap:8px}}
+@media(prefers-reduced-motion:reduce){.date-range-filter button{transition:none;transform:none!important}}
+
+@media(max-width:640px){
+  .date-range-filter { overflow: visible; gap: 12px; padding: 12px; }
+  .date-presets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); width: 100%; gap: 2px; }
+  .date-presets button { min-height: 44px; padding: 8px 4px; font-size: 11px; white-space: normal; }
+  .date-range-filter form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; flex-basis: 100%; gap: 10px; }
+  .date-range-filter label { display: grid; min-width: 0; gap: 6px; }
+  .date-range-filter input { width: 100%; min-width: 0; min-height: 44px; padding: 6px; }
+  .date-range-filter button[type=submit] { grid-column: 1 / -1; min-height: 44px; }
+}

@@ -1,0 +1,41 @@
+# Contraseñas y configuración privada
+.env
+.env.*
+!.env.example
+
+# Dependencias de Node.js
+node_modules/
+
+# Compilación del frontend
+Frontend/dist/
+
+# Entornos y caché de Python
+.venv*/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+Backend/.pip-temp/
+
+# Fotos de usuarios y evidencias de tickets
+Backend/uploads/*
+!Backend/uploads/.gitkeep
+
+# Respaldos de la base de datos
+backups/
+
+# Archivos temporales y capturas de pruebas
+tmp/
+artifacts/
+coverage/
+test-results/
+playwright-report/
+*.log
+
+# Configuración personal del editor y estadísticas
+.vscode/
+.VSCodeCounter/
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db

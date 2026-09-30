@@ -1,0 +1,119 @@
+.operador-container{
+    min-height:100vh;
+    background:#eef5ff;
+}
+
+/* CONTENIDO */
+
+.dashboard-content{
+    padding:35px;
+}
+
+.welcome-box{
+    margin-bottom:30px;
+}
+
+.welcome-box h1{
+    color:#173c7a;
+    margin-bottom:5px;
+}
+
+.welcome-box p{
+    color:#666;
+}
+
+/* KPI */
+
+.cards-grid{
+    display:grid;
+    grid-template-columns:
+    repeat(auto-fit,minmax(250px,1fr));
+
+    gap:25px;
+}
+
+.card{
+    background:white;
+
+    border-radius:20px;
+
+    padding:25px;
+
+    text-align:center;
+
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+
+    transition:.3s;
+}
+
+.card:hover{
+    transform:translateY(-5px);
+}
+
+.card svg{
+    font-size:40px;
+    color:#3456c8;
+}
+
+.card h2{
+    font-size:34px;
+    margin:15px 0 5px;
+}
+
+.card span{
+    color:#666;
+}
+
+/* TABLA */
+
+.table-card{
+    background:white;
+    margin-top:35px;
+    padding:25px;
+    border-radius:20px;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+.table-card h2{
+    color:#173c7a;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+}
+
+thead{
+    background:#3456c8;
+    color:white;
+}
+
+th,
+td{
+    padding:15px;
+    text-align:center;
+}
+
+tbody tr{
+    border-bottom:1px solid #eee;
+}
+
+/* ESTADOS */
+
+.estado{
+    padding:6px 14px;
+    border-radius:20px;
+    font-size:13px;
+    font-weight:600;
+}
+
+.pendiente{
+    background:#fff4c8;
+    color:#997000;
+}
+
+.asignado{
+    background:#dbeaff;
+    color:#0a58ca;
+}

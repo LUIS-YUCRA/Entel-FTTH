@@ -1,0 +1,273 @@
+.perfil-container{
+    min-height:100vh;
+    background:linear-gradient(135deg,#eef5ff,#dcecff);
+    display:flex;
+    flex-direction:column;
+}
+
+/*======================
+    CONTENIDO
+=======================*/
+
+.perfil-main{
+    flex:1;
+    display:flex;
+    gap:40px;
+    padding:35px 50px;
+}
+
+/*======================
+      FOTO
+=======================*/
+
+.foto-section{
+    width:320px;
+}
+
+.foto-section h3{
+    text-align:center;
+    color:#173c7a;
+    margin-bottom:20px;
+    font-size:22px;
+}
+
+.foto-card{
+    background:#fff;
+    border-radius:22px;
+    padding:25px;
+    box-shadow:0 10px 35px rgba(0,0,0,.08);
+    transition:.3s;
+}
+
+.foto-card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 16px 40px rgba(0,0,0,.12);
+}
+
+.foto-header{
+    text-align:center;
+    font-size:18px;
+    font-weight:700;
+    color:#173c7a;
+    padding-bottom:18px;
+    border-bottom:1px solid #edf0f7;
+}
+
+.foto-content{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:25px;
+    padding-top:25px;
+}
+
+.foto-circle{
+    width:170px;
+    height:170px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#1e88e5,#00bcd4);
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:80px;
+    box-shadow:0 10px 25px rgba(0,140,255,.35);
+}
+
+.add-photo-btn{
+    width:100%;
+    background:#0057b8;
+    color:white;
+    border:none;
+    padding:13px;
+    border-radius:12px;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.add-photo-btn:hover{
+    background:#003f88;
+}
+
+/*======================
+     DATOS
+=======================*/
+
+.datos-section{
+    flex:1;
+    background:white;
+    border-radius:22px;
+    padding:35px;
+    box-shadow:0 10px 35px rgba(0,0,0,.08);
+}
+
+.datos-section h1{
+    color:#173c7a;
+    margin-bottom:30px;
+    font-size:30px;
+    font-weight:700;
+}
+
+.datos-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+    gap:25px;
+}
+
+.input-group{
+    display:flex;
+    flex-direction:column;
+}
+
+.input-group label{
+    margin-bottom:8px;
+    font-size:14px;
+    font-weight:600;
+    color:#555;
+}
+
+.input-group input,
+.input-group select{
+    height:46px;
+    border:1px solid #d5dce7;
+    border-radius:12px;
+    padding:0 15px;
+    font-size:15px;
+    transition:.3s;
+    background:#fafbfd;
+}
+
+.input-group input:focus,
+.input-group select:focus{
+    outline:none;
+    border-color:#0057b8;
+    box-shadow:0 0 0 4px rgba(0,87,184,.15);
+    background:white;
+}
+
+/*======================
+      BOTONES
+=======================*/
+
+.buttons-area{
+    margin-top:40px;
+    display:flex;
+    justify-content:flex-end;
+    gap:15px;
+}
+
+.save-btn{
+    background:#0057b8;
+    color:white;
+    border:none;
+    padding:13px 30px;
+    border-radius:12px;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.save-btn:hover{
+    background:#003f88;
+    transform:translateY(-2px);
+}
+
+.cancel-btn{
+    background:white;
+    color:#555;
+    border:1px solid #d8d8d8;
+    padding:13px 30px;
+    border-radius:12px;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.cancel-btn:hover{
+    background:#f2f4f8;
+}
+
+/*======================
+   BOTON REGRESAR
+=======================*/
+
+.back-button{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    border:none;
+    background:white;
+    color:#173c7a;
+    padding:12px 18px;
+    border-radius:12px;
+    font-weight:600;
+    cursor:pointer;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+    transition:.3s;
+}
+
+.back-button:hover{
+    background:#0057b8;
+    color:white;
+}
+
+/*======================
+      LOGO
+=======================*/
+
+.perfil-logo{
+    text-align:right;
+}
+
+.perfil-logo h2{
+    margin:0;
+    color:#173c7a;
+}
+
+.perfil-logo span{
+    color:#666;
+}
+
+/*======================
+      RESPONSIVE
+=======================*/
+
+@media(max-width:1100px){
+
+    .perfil-main{
+        flex-direction:column;
+        padding:25px;
+    }
+
+    .foto-section{
+        width:100%;
+    }
+
+}
+
+@media(max-width:768px){
+
+    .datos-section{
+        padding:25px;
+    }
+
+    .datos-grid{
+        grid-template-columns:1fr;
+    }
+
+    .buttons-area{
+        flex-direction:column;
+    }
+
+    .save-btn,
+    .cancel-btn{
+        width:100%;
+    }
+
+}
+
+.datos-grid input:disabled{background:#edf2f7;color:#5e7184;cursor:not-allowed;border-color:#d5e0e9}.datos-grid .input-group small{color:#60758a;font-size:12px;line-height:1.5}

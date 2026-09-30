@@ -1,0 +1,140 @@
+.admin-dashboard{
+    min-height:100vh;
+    background:#eef5ff;
+    display:flex;
+    flex-direction:column;
+}
+
+.admin-content{
+    flex:1;
+    padding:35px;
+    padding-bottom:150px;
+}
+
+.admin-welcome{
+    margin-bottom:30px;
+}
+
+.admin-welcome h1{
+    color:#173c7a;
+    margin-bottom:10px;
+}
+
+.admin-welcome p{
+    color:#666;
+}
+
+.admin-stats{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:20px;
+}
+
+.admin-card{
+    background:white;
+    padding:25px;
+    border-radius:18px;
+    text-align:center;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+    transition:.3s;
+}
+
+.admin-card:hover{
+    transform:translateY(-5px);
+}
+
+.admin-card svg{
+    font-size:38px;
+    color:#3456c8;
+}
+
+.admin-card h2{
+    margin:15px 0 5px;
+    color:#173c7a;
+}
+
+.admin-card span{
+    color:#666;
+}
+
+.admin-panels{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:25px;
+    margin-top:30px;
+}
+
+.panel-box{
+    background:white;
+    padding:25px;
+    border-radius:18px;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+.panel-box h3{
+    color:#173c7a;
+    margin-bottom:20px;
+}
+
+.estado-item{
+    display:flex;
+    justify-content:space-between;
+    padding:12px 0;
+    border-bottom:1px solid #eee;
+}
+
+.panel-box ul{
+    list-style:none;
+    padding:0;
+}
+
+.panel-box li{
+    padding:12px;
+    margin-bottom:10px;
+    background:#f5f8ff;
+    border-radius:10px;
+}
+
+.admin-table{
+    margin-top:30px;
+    background:white;
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+.admin-table h2{
+    padding:20px;
+    color:#173c7a;
+}
+
+.admin-table table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.admin-table thead{
+    background:#3456c8;
+    color:white;
+}
+
+.admin-table th,
+.admin-table td{
+    padding:15px;
+    text-align:center;
+}
+
+.admin-table tbody tr{
+    border-bottom:1px solid #eee;
+}
+
+.admin-table tbody tr:hover{
+    background:#f7faff;
+}
+
+@media(max-width:900px){
+
+    .admin-panels{
+        grid-template-columns:1fr;
+    }
+}
