@@ -329,3 +329,115 @@ tbody tr:hover{
 }
 .usuarios-content { padding-top: 2rem; }
 .inline-user-form { margin: 2rem auto; max-width: 720px; display: flex; justify-content: center; scroll-margin-top: 2rem; }
+
+.usuarios-admin .usuarios-role-filter { position: relative; min-width: 180px; }
+.usuarios-admin .usuarios-role-filter select { width: 100%; }
+.usuarios-admin .user-actions { display: flex; justify-content: center; gap: 6px; }
+.usuarios-admin .user-actions button { margin: 0; }
+.usuarios-admin .user-actions button:focus-visible { outline: 2px solid #087caf; outline-offset: 2px; }
+.usuarios-admin .users-pagination { border: 1px solid #dce5ed; border-radius: 10px; margin-top: 14px; }
+@media (max-width: 900px) {
+  .usuarios-admin .usuarios-stats { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 8px !important; }
+  .usuarios-admin .usuarios-stats .stat-card { min-width: 0; min-height: 110px; padding: 12px 8px !important; }
+  .usuarios-admin .usuarios-stats h2 { font-size: 24px !important; margin-top: 8px !important; }
+  .usuarios-admin .usuarios-stats span { font-size: 11px; overflow-wrap: anywhere; }
+  .usuarios-admin .filters-card { align-items: stretch; padding: 14px; gap: 10px; }
+  .usuarios-admin .search-box, .usuarios-admin .search-box input { min-width: 0; box-sizing: border-box; }
+  .usuarios-admin .usuarios-role-filter { min-width: 0; width: 100%; }
+  .usuarios-admin .usuarios-role-filter details { position: relative; }
+  .usuarios-admin .usuarios-role-filter details[open] { z-index: 20; }
+  .usuarios-admin .usuarios-role-filter summary { box-sizing: border-box; min-height: 44px; font-size: 14px; }
+  .usuarios-admin .usuarios-role-filter .mobile-filter-options { position: absolute; top: calc(100% + 4px); left: 0; width: 100%; box-sizing: border-box; max-height: min(240px, 50dvh); box-shadow: 0 10px 25px #173d6126; }
+  .usuarios-admin .usuarios-role-filter .mobile-filter-options button { font-size: 14px; }
+  .usuarios-admin .table-card { overflow: visible !important; background: transparent; box-shadow: none !important; }
+  .usuarios-admin .table-card table, .usuarios-admin .table-card tbody { display: block; width: 100%; }
+  .usuarios-admin .table-card thead { display: none; }
+  .usuarios-admin .table-card tbody tr { display: block; padding: 12px; margin-bottom: 12px; border: 1px solid #dce5ed; border-radius: 12px; background: #fff; }
+  .usuarios-admin .table-card td { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 10px; text-align: left; padding: 8px 0; overflow-wrap: anywhere; font-size: 13px; }
+  .usuarios-admin .table-card td::before { content: attr(data-label); color: #687b8c; font-weight: 600; }
+  .usuarios-admin .table-card td:last-child { border-top: 1px solid #e8eef3; margin-top: 6px; padding-top: 12px; }
+  .usuarios-admin .user-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .usuarios-admin .user-actions button { width: 100%; height: 44px; }
+  .usuarios-admin .table-card .users-empty { display: block; text-align: center; }
+  .usuarios-admin .table-card .users-empty::before { display: none; }
+  .usuarios-admin .users-pagination { flex-wrap: wrap; justify-content: center; overflow: visible; gap: 10px; }
+  .usuarios-admin .users-pagination > span { white-space: normal; text-align: center; }
+}
+
+.usuarios-admin .btn-nuevo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 44px;
+  transition: background-color .2s, transform .2s, box-shadow .2s;
+}
+.usuarios-admin .btn-nuevo:hover:not(:disabled) {
+  background: #1465c7;
+  box-shadow: 0 6px 16px #1465c72b;
+}
+@media (hover: hover) and (pointer: fine) {
+  .usuarios-admin .btn-nuevo:hover:not(:disabled) { animation: user-button-pulse 1.2s ease-in-out infinite; }
+}
+.usuarios-admin .btn-nuevo:active:not(:disabled) {
+  animation: none;
+  transform: scale(.96);
+  background: #104c97;
+  box-shadow: 0 2px 6px #104c9726;
+}
+.usuarios-admin .btn-nuevo:focus-visible { outline: 3px solid #0899c9; outline-offset: 3px; }
+.usuarios-admin .user-modal { box-sizing: border-box; min-width: 0; }
+.usuarios-admin .user-modal > label { min-width: 0; }
+.usuarios-admin .user-form-role { min-width: 0; max-width: 100%; }
+.usuarios-admin .user-form-role :is(select, details, summary) { box-sizing: border-box; width: 100%; max-width: 100%; }
+@keyframes user-button-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.035); }
+}
+@media (max-width: 900px) {
+  .usuarios-admin .inline-user-form { min-width: 0; max-width: 100%; }
+  .usuarios-admin .inline-user-form .user-modal { width: 100%; max-width: 100%; padding: 20px 16px; gap: 14px; }
+  .usuarios-admin .user-modal :is(input, textarea) { box-sizing: border-box; min-width: 0; max-width: 100%; }
+  .usuarios-admin .user-form-role summary { min-height: 44px; padding: 10px 12px; font-size: 14px; }
+  .usuarios-admin .user-form-role .mobile-filter-options { max-height: min(160px, 40dvh); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .usuarios-admin .btn-nuevo { transition: none; }
+  .usuarios-admin .btn-nuevo:hover:not(:disabled) { animation: none; }
+}
+
+.usuarios-admin .inline-user-form .modal-header button {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid #f3c9cf;
+  border-radius: 50%;
+  background: #ffedf0;
+  color: #bd344b;
+  line-height: 1;
+  transition: transform .18s ease, background-color .18s ease, color .18s ease, box-shadow .18s ease;
+}
+.usuarios-admin .inline-user-form .modal-header button:hover {
+  transform: rotate(90deg);
+  background: #c92a3a;
+  border-color: #c92a3a;
+  color: #fff;
+  box-shadow: 0 4px 12px #b52c402b;
+}
+.usuarios-admin .inline-user-form .modal-header button:active {
+  transform: rotate(90deg) scale(.9);
+  background: #a61e2c;
+  color: #fff;
+  box-shadow: none;
+}
+.usuarios-admin .inline-user-form .modal-header button:focus-visible {
+  outline: 3px solid #c92a3a;
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .usuarios-admin .inline-user-form .modal-header button { transition: none; }
+  .usuarios-admin .inline-user-form .modal-header button:is(:hover, :active) { transform: none; }
+}

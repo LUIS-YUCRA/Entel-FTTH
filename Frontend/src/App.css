@@ -754,3 +754,158 @@ textarea:focus {
   .client-notification-stats strong { font-size: 22px; overflow-wrap: anywhere; }
   .client-notification-stats article > div > span { font-size: 10px; line-height: 1.4; overflow-wrap: anywhere; }
 }
+
+/* Consistent feedback for evidence actions and pagination. */
+:is(.technician-evidence-card > button, .shared-evidence-modal > header button,
+.shared-evidence-modal > footer button, .technician-detail-card > header button,
+.technician-table-footer nav button, .client-pagination button, .notification-pagination button) {
+  transition: background-color .18s ease, color .18s ease, border-color .18s ease,
+    transform .18s ease, box-shadow .18s ease;
+  touch-action: manipulation;
+}
+.shared-evidence-modal > header button,
+.technician-detail-card > header button {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 44px; min-height: 44px; flex-shrink: 0;
+}
+.technician-evidence-card > button,
+.shared-evidence-modal > footer button { min-height: 44px; }
+@media (hover: hover) {
+  :is(.technician-evidence-card > button, .shared-evidence-modal > header button,
+  .shared-evidence-modal > footer button, .technician-detail-card > header button,
+  .technician-table-footer nav button, .client-pagination button, .notification-pagination button):hover:not(:disabled) {
+    background: #08689b; color: #fff; border-color: #08689b;
+    transform: translateY(-2px); box-shadow: 0 4px 10px #08689b30;
+  }
+}
+:is(.technician-evidence-card > button, .shared-evidence-modal > header button,
+.shared-evidence-modal > footer button, .technician-detail-card > header button,
+.technician-table-footer nav button, .client-pagination button, .notification-pagination button):active:not(:disabled) {
+  background: #064d76; color: #fff; border-color: #064d76;
+  transform: scale(.95); box-shadow: none;
+}
+:is(.technician-evidence-card > button, .shared-evidence-modal > header button,
+.shared-evidence-modal > footer button, .technician-detail-card > header button,
+.technician-table-footer nav button, .client-pagination button, .notification-pagination button):focus-visible {
+  outline: 3px solid #2397c6; outline-offset: 3px;
+}
+:is(.technician-table-footer nav button, .client-pagination button, .notification-pagination button):disabled {
+  opacity: .4; cursor: not-allowed; transform: none; box-shadow: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.technician-evidence-card > button, .shared-evidence-modal > header button,
+  .shared-evidence-modal > footer button, .technician-detail-card > header button,
+  .technician-table-footer nav button, .client-pagination button, .notification-pagination button) {
+    transition: none; transform: none !important;
+  }
+}
+
+@media (hover: hover) {
+  :is(.shared-evidence-modal > header button, .technician-detail-card > header button):hover:not(:disabled) {
+    background: #c92a3a; border-color: #c92a3a; color: #fff;
+    box-shadow: 0 4px 10px #c92a3a30;
+  }
+}
+:is(.shared-evidence-modal > header button, .technician-detail-card > header button):active:not(:disabled) {
+  background: #a61e2c; border-color: #a61e2c; color: #fff; box-shadow: none;
+}
+:is(.shared-evidence-modal > header button, .technician-detail-card > header button):focus-visible {
+  outline-color: #c92a3a;
+}
+
+@media (max-width: 900px) {
+  .technician-filter-panel > label, .technician-date { min-width: 0; max-width: 100%; }
+  .technician-filter-panel input { min-width: 0; max-width: 100%; box-sizing: border-box; }
+  .mobile-filter-select { width: 100%; min-width: 0; color: #34556d; font-size: 16px; font-weight: 400; }
+  .mobile-filter-select summary { padding: 11px 12px; border: 1px solid #c9dce8; border-radius: 8px; background: #fff; cursor: pointer; overflow-wrap: anywhere; }
+  .mobile-filter-select[open] summary { border-color: #078fc0; background: #eff8fc; }
+  .mobile-filter-options { display: grid; max-height: 240px; overflow-y: auto; padding: 4px; border: 1px solid #c9dce8; border-radius: 8px; background: #fff; }
+  .mobile-filter-options button { width: 100%; min-height: 44px; white-space: normal; overflow-wrap: anywhere; border: 0; padding: 10px; text-align: left; background: #fff; color: #34556d; font: inherit; }
+  .mobile-filter-options button[aria-pressed=true] { background: #e3f4fb; color: #075a83; }
+  .mobile-filter-options button:active { background: #087caf; color: white; }
+  .mobile-filter-select summary:focus-visible, .mobile-filter-options button:focus-visible { outline: 2px solid #087caf; outline-offset: -2px; }
+}
+@media (max-width: 640px) {
+  .perfil-tecnico .technician-kpis, .mis-tickets-content .technician-stats { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px; }
+  .perfil-tecnico .kpi-card, .mis-tickets-content .technician-stat-card { min-width: 0; padding: 12px 10px; gap: 8px; }
+  .perfil-tecnico .kpi-card { flex-direction: column; }
+  .perfil-tecnico .kpi-card div, .mis-tickets-content .technician-stat-card div { min-width: 0; overflow-wrap: anywhere; }
+  .history-export .history-export-buttons { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; width: 100%; }
+  .history-export .history-export-buttons button { min-width: 0; width: 100%; min-height: 64px; padding: 8px 4px; flex-direction: column; white-space: normal; font-size: 12px; }
+  .history-export .history-export-buttons button span { overflow-wrap: anywhere; }
+  :is(.perfil-tecnico, .mis-tickets-container, .historial-page, .notifications-shell) button:not(:disabled):active { filter: brightness(.88); }
+}
+
+.technician-date-field { display: grid; gap: 6px; min-width: 0; align-content: start; }
+.technician-date-field > span { color: #5d7384; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+@media (max-width: 900px) {
+  .mobile-date-filter { min-width: 0; width: 100%; font-weight: 400; }
+  .mobile-date-filter summary { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 10px; border: 1px solid #c9dce8; border-radius: 8px; background: #fff; color: #34556d; cursor: pointer; font-size: 16px; }
+  .mobile-date-calendar { width: 100%; box-sizing: border-box; padding: 6px; border: 1px solid #c9dce8; border-radius: 8px; background: #fff; }
+  .mobile-date-month { display: grid; grid-template-columns: 32px minmax(0, 1fr) 32px; align-items: center; gap: 2px; }
+  .mobile-date-month strong { text-align: center; font-size: 13px; color: #34556d; }
+  .mobile-date-calendar button { border: 0; border-radius: 6px; background: #f1f7fb; color: #176389; min-width: 0; min-height: 40px; padding: 4px; font-size: 14px; cursor: pointer; }
+  .mobile-date-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; margin-top: 6px; }
+  .mobile-date-days > span { text-align: center; padding-block: 6px; font-size: 11px; color: #61758a; }
+  .mobile-date-calendar button[aria-pressed=true], .mobile-date-calendar button:active { background: #087caf; color: #fff; }
+  .mobile-date-calendar button:focus-visible, .mobile-date-filter summary:focus-visible { outline: 2px solid #087caf; outline-offset: -2px; }
+  .mobile-date-actions { display: flex; justify-content: space-between; margin-top: 6px; }
+  .mobile-date-actions button { padding-inline: 12px; }
+}
+@media (max-width: 650px) {
+  .perfil-tecnico .technician-hero { flex-direction: column; align-items: stretch; }
+  .perfil-tecnico .technician-hero .availability-pill { order: -1; align-self: flex-end; margin: 0; }
+  .technician-page-heading .technician-online { display: none; }
+}
+
+.operator-mobile-schedule { display: none; }
+.ticket-control-layout.detail-closed { grid-template-columns: minmax(0, 1fr); }
+.ticket-detail-panel { scroll-margin-top: 16px; }
+.operator-detail-close { min-width: 44px; height: 44px; border: 1px solid #dce5ed; border-radius: 8px; color: #61758a; background: #f1f7fb; cursor: pointer; }
+.operator-queue-pagination { padding: 12px 8px; border-top: 1px solid #dce5ed; background: #fff; color: #61758a; font-size: 12px; display: flex; flex-wrap: nowrap; gap: 8px; justify-content: space-between; align-items: center; overflow-x: auto; font-variant-numeric: tabular-nums; }
+.operator-queue-pagination > span { white-space: nowrap; flex-shrink: 0; }
+.operator-page-position { white-space: nowrap; min-width: 42px; text-align: center; }
+.operator-page-position strong { color: #087caf; }
+.operator-queue-pagination nav { display: flex; flex-wrap: nowrap; align-items: center; flex-shrink: 0; gap: 5px; }
+.operator-queue-pagination button { min-width: 32px; min-height: 36px; border: 1px solid #d4e0e9; border-radius: 6px; color: #517088; background: #fff; cursor: pointer; }
+.operator-queue-pagination button[aria-current=page] { color: #fff; background: #0b4f85; }
+:is(.operator-queue-pagination button, .operator-detail-close, .open-map-link, .ticket-action-buttons button) { transition: background .18s, color .18s, transform .18s, box-shadow .18s; }
+:is(.operator-queue-pagination button, .open-map-link, .ticket-action-buttons button):hover:not(:disabled) { background: #08689b; color: white; transform: translateY(-2px); box-shadow: 0 4px 10px #08689b30; }
+:is(.operator-queue-pagination button, .open-map-link, .ticket-action-buttons button):active:not(:disabled) { background: #064d76; color: white; transform: scale(.96); }
+.operator-detail-close:hover, .operator-detail-close:active { background: #c92a3a; color: white; }
+:is(.operator-queue-pagination button, .operator-detail-close, .open-map-link, .ticket-action-buttons button):focus-visible { outline: 3px solid #2397c6; outline-offset: 2px; }
+.operator-queue-pagination button:disabled { opacity: .4; cursor: not-allowed; }
+@media (max-width: 900px) {
+  .operator-desktop-schedule { display: none; }
+  .operator-mobile-schedule { display: grid; gap: 10px; min-width: 0; }
+  .ticket-filter-bar > *, .action-field, .ticket-detail-panel { min-width: 0; max-width: 100%; }
+  .ticket-filter-bar .mobile-filter-select, .action-field .mobile-filter-select { min-width: 0; width: 100%; }
+  .operator-mobile-schedule input { box-sizing: border-box; width: 100%; min-height: 44px; }
+}
+@media (max-width: 640px) {
+  .operador-container .cards-grid, .operator-tickets-content .operator-kpis, .tecnicos-content .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px; }
+  .operador-container .cards-grid > *, .operator-kpis article, .tecnicos-content .stat-card { min-width: 0; padding: 12px 10px; overflow-wrap: anywhere; }
+  .operator-tickets-content .operator-kpis article { gap: 8px; }
+  .operator-kpis article > div { min-width: 0; }
+  .operator-page-heading, .operator-profile-heading { display: grid !important; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: start; }
+  .operator-page-heading > div:first-child, .operator-profile-heading > div:first-child { display: contents; }
+  .operator-page-heading .page-eyebrow, .operator-profile-heading > div:first-child > span { grid-column: 1; grid-row: 1; }
+  .operator-page-heading h1, .operator-profile-heading h1 { grid-column: 1/-1; }
+  .operator-page-heading > div:first-child > p:last-child, .operator-profile-heading > div:first-child > p { grid-column: 1/-1; }
+  .operator-page-heading .operator-session, .operator-profile-heading .operator-account-status { grid-column: 2; grid-row: 1; margin: 0; max-width: 145px; white-space: normal; overflow-wrap: anywhere; font-size: 11px; padding: 8px; align-self: start; }
+  .detail-heading { flex-wrap: wrap; }
+  .operator-detail-close { margin-left: auto; }
+  .ticket-action-buttons { display: grid; grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.operator-queue-pagination button, .operator-detail-close, .open-map-link, .ticket-action-buttons button) { transition: none; transform: none !important; }
+}
+
+.ticket-detail-panel > .detail-heading { position: relative; padding-right: 68px; min-height: 72px; }
+.ticket-detail-panel .operator-detail-close { position: absolute; right: 12px; top: 12px; margin: 0; display: grid; place-items: center; }
+.ticket-detail-panel .operator-detail-close:hover { background: #c92a3a; border-color: #c92a3a; color: #fff; }
+.ticket-detail-panel .operator-detail-close:active { background: #a61e2c; border-color: #a61e2c; color: #fff; transform: scale(.94); }
+.ticket-detail-panel .operator-detail-close:focus-visible { outline-color: #c92a3a; }
+.ticket-action-buttons button { min-height: 44px; white-space: normal; }
+.ticket-action-buttons .assign-button:hover:not(:disabled), .ticket-action-buttons .save-button:hover:not(:disabled) { background: #08689b; color: #fff; box-shadow: 0 4px 12px #08689b33; }
+.ticket-action-buttons .assign-button:active:not(:disabled), .ticket-action-buttons .save-button:active:not(:disabled) { background: #064d76; color: #fff; transform: scale(.96); box-shadow: none; }

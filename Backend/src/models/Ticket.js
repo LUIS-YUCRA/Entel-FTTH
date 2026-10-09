@@ -251,6 +251,9 @@ class Ticket {
         return null;
       }
       currentTicket = current.rows[0];
+      if (status === 'ASIGNADO' && !currentTicket.technician_id) {
+        throw Object.assign(new Error('Asigna un técnico responsable antes de guardar cambios.'), { status: 400 });
+      }
       if ((details.expectedStatus && currentTicket.status !== details.expectedStatus)
         || (details.technicianId && Number(currentTicket.technician_id) !== Number(details.technicianId))) {
         throw Object.assign(new Error('La atención cambió. Actualiza la tarea antes de continuar.'), { status: 409 });

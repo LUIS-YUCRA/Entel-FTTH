@@ -39,3 +39,34 @@ playwright-report/
 # Archivos del sistema operativo
 .DS_Store
 Thumbs.db
+
+# Otras compilaciones y cachés locales
+dist/
+dist-ssr/
+.vite/
+.cache/
+.ruff_cache/
+.mypy_cache/
+*.tsbuildinfo
+*.local
+
+# Respaldos exportados y volcados privados (conservar Backend/sql/*.sql)
+*.backup
+*.dump
+*.sql.gz
+*.sql.zip
+
+# Credenciales y claves privadas locales
+.npmrc
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Otros archivos personales del editor y del sistema
+.idea/
+Desktop.ini
+*.swp
+*.swo
+*.tmp
+*.bak

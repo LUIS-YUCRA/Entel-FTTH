@@ -1,3 +1,4 @@
+import Pagination from '../components/Pagination';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FaBell,
@@ -172,7 +173,7 @@ const Notifications = () => {
           )}
 
           {user.user_type === 'cliente' && <DateRangeFilter value={range} onChange={(next) => { setLoading(true); setPage(1); setRange(next); }} description="Se conservan las notificaciones de los últimos 3 meses" />}
-          <section className={`notification-stats${user.user_type === 'cliente' ? ' client-notification-stats' : ''}`} aria-label="Resumen de notificaciones">
+          <section className={`notification-stats${['cliente', 'tecnico', 'operador'].includes(user.user_type) ? ' client-notification-stats' : ''}`} aria-label="Resumen de notificaciones">
             <article className="pending">
               <span className="stat-icon"><FaBell /></span>
               <div><strong>{metrics.unread}</strong><span>Pendientes</span></div>
@@ -245,17 +246,10 @@ const Notifications = () => {
                 <p className="empty-notifications">No hay notificaciones en esta categoría.</p>
               )}
             </div>
-          </section>
           {!loading && visible.length > 0 && (
-            <div className="notification-pagination">
-              <span aria-live="polite"><span className="notification-pagination-prefix">Mostrando </span>{(currentPage - 1) * 5 + 1}–{Math.min(currentPage * 5, visible.length)} de {visible.length} notificaciones</span>
-              <nav aria-label="Paginación de notificaciones">
-                <button type="button" aria-label="Página anterior" disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>&lt;</button>
-                <span aria-live="polite"><strong>{currentPage}</strong> de {totalPages}</span>
-                <button type="button" aria-label="Página siguiente" disabled={currentPage === totalPages} onClick={() => setPage(currentPage + 1)}>&gt;</button>
-              </nav>
-            </div>
+            <Pagination page={currentPage} pageSize={5} total={visible.length} noun="notificaciones" onPageChange={setPage} />
           )}
+          </section>
         </div>
       </main>
       <Footer />

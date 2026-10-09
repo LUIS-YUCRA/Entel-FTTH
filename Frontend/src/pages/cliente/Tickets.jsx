@@ -1,3 +1,4 @@
+import Pagination from '../../components/Pagination';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   FaCheckCircle, FaClock, FaDownload, FaSearch, FaTicketAlt, FaTimes, FaTools,
@@ -203,16 +204,7 @@ const Tickets = () => {
         
         </div>
 
-        {!loading && filtered.length > 0 && <footer className="client-pagination">
-          <span>Mostrando {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filtered.length)} de {filtered.length} tickets</span>
-          <div className="client-pagination-controls">
-            <nav aria-label="Paginación de tickets">
-              <button type="button" aria-label="Página anterior" disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>&lt;</button>
-              <span className="client-page-position" aria-live="polite"><strong>{currentPage}</strong> de {totalPages}</span>
-              <button type="button" aria-label="Página siguiente" disabled={currentPage === totalPages} onClick={() => setPage(currentPage + 1)}>&gt;</button>
-            </nav>
-          </div>
-        </footer>}
+        {!loading && filtered.length > 0 && <Pagination page={currentPage} pageSize={pageSize} total={filtered.length} noun="tickets" onPageChange={setPage} />}
         {selected && (
           <section className="client-ticket-detail" ref={detailRef} tabIndex="-1">
             {loadingDetail && <div className="chat-error">Actualizando detalle...</div>}

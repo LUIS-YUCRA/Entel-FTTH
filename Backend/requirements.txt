@@ -1,4 +1,3 @@
 spacy>=3.7,<4
-psycopg2-binary>=2.9,<3
 # Modelo recomendado después de instalar spaCy:
 # python -m spacy download es_core_news_md

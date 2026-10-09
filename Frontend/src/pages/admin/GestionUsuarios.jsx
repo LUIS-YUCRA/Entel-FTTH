@@ -1,3 +1,4 @@
+import Pagination from '../../components/Pagination';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   FaEdit, FaEye, FaKey, FaSearch, FaTrash, FaUserCheck, FaUserPlus, FaUserSlash, FaUsers,
@@ -5,6 +6,7 @@ import {
 import { userService } from '../../services/UserService';
 import AdminHeader from '../../components/Header/AdminHeader';
 import Footer from '../../components/Footer/Footer';
+import ResponsiveFilterSelect from '../../components/ResponsiveFilterSelect';
 import './GestionUsuarios.css';
 
 const EMPTY_FORM = {
@@ -19,6 +21,7 @@ const GestionUsuarios = () => {
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
   const [role, setRole] = useState('');
+  const [page, setPage] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [error, setError] = useState('');
@@ -38,16 +41,36 @@ const GestionUsuarios = () => {
       .catch((requestError) => setError(requestError.message));
   }, []);
 
+  useEffect(() => {
+    const closeFilter = event => {
+      document.querySelectorAll('.usuarios-admin .usuarios-role-filter details').forEach(panel => {
+        if (!panel.contains(event.target)) panel.open = false;
+      });
+    };
+    document.addEventListener('pointerdown', closeFilter);
+    document.addEventListener('focusin', closeFilter);
+    return () => {
+      document.removeEventListener('pointerdown', closeFilter);
+      document.removeEventListener('focusin', closeFilter);
+    };
+  }, []);
+
+  const orderedUsers = useMemo(() => [...users].sort((a, b) => Number(a.id) - Number(b.id)), [users]);
+  const userNumbers = useMemo(() => new Map(orderedUsers.map((user, index) => [user.id, index + 1])), [orderedUsers]);
+
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
-    return users.filter((user) => (
+    return orderedUsers.filter((user) => (
       (!role || user.user_type === role)
       && (
         user.full_name.toLowerCase().includes(term)
         || user.email.toLowerCase().includes(term)
       )
     ));
-  }, [users, search, role]);
+  }, [orderedUsers, search, role]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / 10));
+  const currentPage = Math.min(page, totalPages);
+  const pageUsers = filtered.slice((currentPage - 1) * 10, currentPage * 10);
 
   const createUser = async (event) => {
     event.preventDefault();
@@ -149,36 +172,39 @@ const GestionUsuarios = () => {
               type="text"
               placeholder="Buscar usuario..."
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              aria-label="Buscar usuario por nombre o correo"
+              onChange={(event) => { setSearch(event.target.value); setPage(1); }}
             />
           </div>
-          <select value={role} onChange={(event) => setRole(event.target.value)}>
+          <div className="usuarios-role-filter" aria-label="Filtrar por rol">
+          <ResponsiveFilterSelect id="user-role-filter" value={role} onChange={(event) => { setRole(event.target.value); setPage(1); }}>
             <option value="">Todos</option>
             <option value="cliente">Cliente</option>
             <option value="operador">Operador</option>
             <option value="tecnico">Técnico</option>
             <option value="administrador">Administrador</option>
-          </select>
+          </ResponsiveFilterSelect>
+          </div>
         </div>
 
         <div className="table-card">
           <table>
             <thead>
-              <tr><th>ID</th><th>Nombre</th><th>Rol</th><th>Correo</th><th>Estado</th><th>Acción</th></tr>
+              <tr><th>N.º</th><th>Nombre</th><th>Rol</th><th>Correo</th><th>Estado</th><th>Acción</th></tr>
             </thead>
             <tbody>
-              {filtered.map((user) => (
+              {pageUsers.map((user) => (
                 <tr key={user.id}>
-                  <td>{user.id}</td>
-                  <td>{user.full_name}</td>
-                  <td>{user.user_type}</td>
-                  <td>{user.email}</td>
-                  <td>
+                  <td data-label="N.º">{userNumbers.get(user.id)}</td>
+                  <td data-label="Nombre">{user.full_name}</td>
+                  <td data-label="Rol">{user.user_type}</td>
+                  <td data-label="Correo">{user.email}</td>
+                  <td data-label="Estado">
                     <span className={`estado ${user.is_active ? 'activo' : 'inactivo'}`}>
                       {user.is_active ? 'Activo' : 'Inactivo'}
                     </span>
                   </td>
-                  <td>
+                  <td data-label="Acciones"><div className="user-actions">
                     <button type="button" className="btn-view" onClick={() => viewUser(user)} title="Ver ficha"><FaEye /></button>
                     <button type="button" className="btn-edit" onClick={() => editUser(user)} title="Editar usuario"><FaEdit /></button>
                     <button type="button" className="btn-edit" onClick={() => resetPassword(user)} title="Restablecer contraseña">
@@ -193,19 +219,22 @@ const GestionUsuarios = () => {
                     >
                       {user.is_active ? <FaUserSlash /> : <FaUserCheck />}
                     </button>
-                  </td>
+                  </div></td>
                 </tr>
               ))}
+              {!filtered.length && <tr><td colSpan={6} className="users-empty">No hay usuarios que coincidan con la búsqueda.</td></tr>}
             </tbody>
           </table>
         </div>
+
+        {filtered.length > 0 && <Pagination page={currentPage} pageSize={10} total={filtered.length} noun="usuarios" onPageChange={setPage} />}
 
         {showForm && (
           <div className="inline-user-form" ref={formRef}>
             <form className="user-modal" onSubmit={createUser}>
               <div className="modal-header">
                 <h2>Nuevo usuario</h2>
-                <button type="button" onClick={() => setShowForm(false)}>×</button>
+                <button type="button" aria-label="Cerrar formulario de nuevo usuario" onClick={() => setShowForm(false)}>×</button>
               </div>
               <label>
                 Nombre completo
@@ -213,10 +242,12 @@ const GestionUsuarios = () => {
               </label>
               <label>
                 Rol
-                <select value={form.userType} onChange={(event) => setForm({ ...form, userType: event.target.value })}>
+                <div className="usuarios-role-filter user-form-role">
+                <ResponsiveFilterSelect id="new-user-role" value={form.userType} onChange={(event) => setForm({ ...form, userType: event.target.value })}>
                   <option value="operador">Operador</option>
                   <option value="tecnico">Técnico</option>
-                </select>
+                </ResponsiveFilterSelect>
+                </div>
               </label>
               <label>
                 Correo

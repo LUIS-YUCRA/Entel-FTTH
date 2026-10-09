@@ -6,3 +6,23 @@
 .feedback-dialog textarea{min-height:120px}
 .feedback-dialog button{margin:14px 8px 0 0;padding:12px 18px;border:0;border-radius:8px;background:#007bad;color:white;font:inherit;cursor:pointer}
 .feedback-dialog button:disabled{opacity:.5;cursor:wait}
+
+.feedback-dialog { position: fixed; animation: feedback-enter .24s ease-out both; }
+.feedback-dialog.is-closing { animation: feedback-exit .16s ease-in both; }
+.feedback-dialog::backdrop { backdrop-filter: blur(4px); animation: feedback-backdrop .24s ease-out both; }
+.feedback-dialog .feedback-close { position: absolute; top: 14px; right: 14px; display: grid; place-items: center; width: 44px; height: 44px; margin: 0; padding: 0; border: 1px solid #dce6ef; border-radius: 50%; background: #f3f7fb; color: #546b80; transition: transform .18s, background .18s, color .18s, box-shadow .18s; }
+.feedback-dialog .feedback-close:hover { transform: rotate(90deg); background: #feecee; color: #b52c40; box-shadow: 0 4px 12px #b52c4018; }
+.feedback-dialog .feedback-close:active { transform: rotate(90deg) scale(.9); }
+.feedback-dialog .feedback-close:focus-visible { outline: 3px solid #078fc0; outline-offset: 3px; }
+.feedback-notice { border: 1px solid #dde7ef; font-size: 16px; }
+.feedback-notice h2 { padding-right: 42px; margin-bottom: 12px; font-size: 22px; line-height: 1.3; letter-spacing: -.3px; }
+.feedback-status-icon { display: grid; place-items: center; width: 52px; height: 52px; margin-bottom: 18px; border-radius: 16px; background: #e7f5fd; color: #087caf; font-size: 24px; }
+.feedback-notice[data-tone=warning] .feedback-status-icon { background: #fff3d9; color: #a66b08; }
+.feedback-notice[data-tone=error] .feedback-status-icon { background: #ffedf0; color: #bd344b; }
+.feedback-notice[data-tone=success] .feedback-status-icon { background: #e4f6ef; color: #138461; }
+.feedback-notice .feedback-body { color: #506578; line-height: 1.65; }
+.tickets-operador .feedback-dialog .feedback-hint { margin-top: 20px; padding-top: 14px; border-top: 1px solid #e5edf3; color: #64798b; font-size: 13px; line-height: 1.5; }
+@keyframes feedback-enter { from { opacity: 0; transform: translateY(12px) scale(.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes feedback-exit { to { opacity: 0; transform: translateY(8px) scale(.97); } }
+@keyframes feedback-backdrop { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .feedback-dialog, .feedback-dialog.is-closing, .feedback-dialog::backdrop { animation: none; } .feedback-dialog .feedback-close { transition: none; } }

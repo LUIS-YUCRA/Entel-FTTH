@@ -1,0 +1,67 @@
+.system-pagination {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  gap: 12px 20px;
+  width: 100%;
+  padding: 16px 18px;
+  border-top: 1px solid #dce5ed;
+  border-radius: 0 0 12px 12px;
+  background: #fff;
+  color: #738796;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.system-pagination .system-pagination-summary { min-width: 0; line-height: 1.5; white-space: nowrap; flex-shrink: 0; }
+.system-pagination .system-pagination-nav { display: flex; align-items: center; gap: 5px; flex-shrink: 0; margin-left: auto; }
+.system-pagination .system-pagination-nav button {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 35px;
+  min-width: 35px;
+  height: 35px;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #d4e0e9;
+  border-radius: 8px;
+  background: #fff;
+  color: #517088;
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: background .18s, border-color .18s, color .18s;
+}
+.system-pagination .system-pagination-nav button svg { width: 14px; height: 14px; }
+.system-pagination .system-pagination-nav button[aria-current="page"] { background: #0b4f85; border-color: #0b4f85; color: #fff; }
+.system-pagination .system-pagination-nav button:hover:not(:disabled) { background: #eaf3fa; border-color: #8eb2cf; }
+.system-pagination .system-pagination-nav button[aria-current="page"]:hover { background: #09426f; }
+.system-pagination .system-pagination-nav button:disabled { opacity: .4; cursor: not-allowed; }
+.system-pagination .system-pagination-nav button:focus-visible { outline: 3px solid #2397c6; outline-offset: 2px; }
+.system-pagination .system-pagination-gap { display: grid; place-items: center; width: 12px; }
+@media (max-width: 600px) {
+  .system-pagination { padding: 10px 8px; gap: 6px; font-size: 10px; }
+  .system-pagination .system-pagination-nav {
+    min-width: 62px;
+    flex-shrink: 1;
+    gap: 3px;
+    overflow-x: auto;
+    padding: 4px 0;
+  }
+  .system-pagination .system-pagination-nav button {
+    width: 28px;
+    min-width: 28px;
+    height: 35px;
+    flex-shrink: 0;
+    border-radius: 7px;
+    font-size: 14px;
+  }
+  .system-pagination .system-pagination-nav button svg { width: 12px; height: 12px; }
+  .system-pagination .system-pagination-gap { width: 10px; flex-shrink: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .system-pagination .system-pagination-nav button { transition: none; }
+}

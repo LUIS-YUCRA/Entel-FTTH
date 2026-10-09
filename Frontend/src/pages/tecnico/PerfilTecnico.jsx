@@ -72,27 +72,7 @@ const PerfilTecnico=()=>{
       </section>
       <div className="technician-dashboard-grid">
         <div className="technician-main-column">
-          <section className="dashboard-panel">
-            <div className="panel-heading"><div><FaCalendarAlt/>
-              <h2>Próximas visitas</h2>
-                </div><span>{upcomingVisits.length} programadas</span></div>
-                  <div className="dashboard-table-wrap">
-                    <table className="dashboard-table">
-                      <thead><tr><th>Fecha y hora</th><th>Cliente</th><th>Dirección</th><th>Estado</th></tr></thead>
-                        <tbody>{upcomingVisits.map((ticket)=>
-                          <tr key={ticket.id}>
-                            <td className="date-cell">
-                              {shortDate(ticket.scheduled_at,true)}
-                            </td><td>{ticket.customer_name}</td>
-                              <td>{ticket.customer_address||ticket.customer_zone||'No registrada'}</td>
-                                <td><span className={`status-chip status-${ticket.status?.toLowerCase()}`}>{statusLabels[ticket.status]||ticket.status}</span></td>
-                          </tr>)}{!upcomingVisits.length&&<tr>
-                            <td colSpan="4" className="empty-row">No tienes visitas próximas programadas.</td>
-                            </tr>
-                       }</tbody>
-                    </table>
-                  </div>
-          </section>
+
         <section className="dashboard-panel">
           <div className="panel-heading"><div><FaClipboardList/>
             <h2>Mis tickets recientes</h2>

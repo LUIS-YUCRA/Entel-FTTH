@@ -33,7 +33,7 @@ export const EvidencePreviewModal = ({ evidence, onClose }) => {
   if (!evidence) return null;
   return <div className="shared-evidence-overlay" role="dialog" aria-modal="true" aria-label="Vista previa de evidencia">
     <section className="shared-evidence-modal">
-      <header><div><span>Evidencia del ticket</span><h2>{evidence.original_name}</h2></div><button type="button" onClick={onClose} aria-label="Cerrar vista previa"><FaTimes /></button></header>
+      <header><div><span>Evidencia del ticket</span><h2>{evidence.original_name}</h2></div><button type="button" onClick={onClose} aria-label="Cerrar vista previa" title="Cerrar evidencia"><FaTimes /></button></header>
       <div className="shared-evidence-content">
         {!url && !error && <p>Cargando evidencia...</p>}
         {error && <p className="shared-evidence-error">{error}</p>}

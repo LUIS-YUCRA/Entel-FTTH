@@ -2,6 +2,76 @@
   max-width: 1760px;
 }
 
+.tickets-operador .feedback-dialog {
+  box-sizing: border-box;
+  width: min(440px, calc(100vw - 32px));
+  padding: 24px;
+  overflow-wrap: anywhere;
+}
+
+.tickets-operador .feedback-dialog p {
+  margin: 0;
+}
+
+/* Popovers stay anchored to their field without changing grid row heights. */
+.operator-tickets-content .ticket-detail-panel {
+  overflow: visible;
+}
+
+.operator-tickets-content :is(.mobile-filter-select, .mobile-date-filter) {
+  position: relative;
+  align-self: start;
+  box-sizing: border-box;
+}
+
+.operator-tickets-content :is(.mobile-filter-select, .mobile-date-filter)[open] {
+  z-index: 30;
+}
+
+.operator-tickets-content :is(.mobile-filter-options, .mobile-date-calendar) {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
+  max-height: min(350px, 55dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  box-shadow: 0 12px 30px rgba(27, 57, 88, .18);
+}
+
+.operator-tickets-content .mobile-filter-options {
+  max-height: min(240px, 55dvh);
+}
+
+.operator-tickets-content [data-direction="up"] > :is(.mobile-filter-options, .mobile-date-calendar) {
+  top: auto;
+  bottom: calc(100% + 5px);
+}
+
+.operator-tickets-content :is(.mobile-filter-select, .mobile-date-filter) summary {
+  box-sizing: border-box;
+  min-height: 44px;
+}
+
+.operator-tickets-content :is(.mobile-filter-options button:hover, .mobile-filter-options button:focus-visible) {
+  background: #e3f4fb;
+  color: #075a83;
+}
+
+.operator-tickets-content :is(.ticket-filter-bar select, .action-field select, .action-field input) {
+  box-sizing: border-box;
+  min-height: 44px;
+  border: 1px solid #c9dce8;
+  background-color: #fff;
+  color: #34556d;
+}
+
+.operator-tickets-content :is(.ticket-filter-bar select, .action-field select, .action-field input):focus-visible {
+  outline: 2px solid #087caf;
+  outline-offset: 2px;
+}
+
 .operator-page-heading {
   display: flex;
   align-items: flex-start;
@@ -763,3 +833,53 @@
 .ticket-list-meta .span {
   font-size: 10px !important;
 }
+
+/* Each column grows with its own content, without empty evidence rows. */
+.operator-tickets-content .ticket-detail-columns { align-items: start; }
+.operator-tickets-content .ticket-detail-column { min-width: 0; }
+.operator-tickets-content .ticket-detail-column:first-child { border-right: 1px solid #e4ebf2; }
+.operator-tickets-content .evidence-section { border-right: 0; border-bottom: 1px solid #e4ebf2; }
+.operator-tickets-content .subsection-heading h3 { font-size: 15px; line-height: 1.4; }
+.operator-tickets-content .subsection-heading > span { font-size: 12px; color: #63768a; }
+.operator-tickets-content .evidence-grid { grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 210px)); gap: 12px; padding: 0; border: 0; background: transparent; cursor: default; box-shadow: none; }
+.operator-tickets-content .evidence-grid:hover { background: transparent; color: inherit; }
+.operator-tickets-content .evidence-grid article { padding: 10px; background: #fff; border-color: #dce6ee; }
+.operator-tickets-content .evidence-grid article > strong { font-size: 13px; line-height: 1.4; white-space: normal; overflow-wrap: anywhere; }
+.operator-tickets-content .evidence-grid article > span { font-size: 12px; color: #63768a; }
+.operator-tickets-content .evidence-grid article > button {
+  align-self: flex-start;
+  width: auto;
+  min-height: 30px;
+  margin-top: 8px;
+  padding: 5px 10px;
+  border: 1px solid #c9e1ed;
+  border-radius: 6px;
+  background: #edf7fc;
+  color: #086d9b;
+  font-size: 11px;
+  line-height: 1.4;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .16s, border-color .16s;
+}
+.operator-tickets-content .evidence-grid article > button:hover {
+  background: #dceff8;
+  border-color: #93c8df;
+}
+.operator-tickets-content .evidence-grid article > button:focus-visible {
+  outline: 2px solid #087caf;
+  outline-offset: 2px;
+}
+.operator-tickets-content .evidence-grid-empty { display: block; }
+.operator-tickets-content .evidence-grid-empty .subsection-empty { min-height: 0; padding: 14px; text-align: left; font-size: 13px; line-height: 1.5; color: #63768a; border-style: solid; background: #f8fafc; }
+.operator-tickets-content .diagnosis-conversation { display: grid; gap: 0; max-height: 360px; overflow-y: auto; margin-top: 12px; padding: 4px 14px; border: 1px solid #dce6ee; border-radius: 10px; background: #fbfdff; scrollbar-gutter: stable; }
+.operator-tickets-content .diagnosis-conversation article { padding: 10px 0; border: 0; border-radius: 0; background: transparent; min-width: 0; }
+.operator-tickets-content .diagnosis-conversation article + article { border-top: 1px solid #e8eef3; }
+.operator-tickets-content .diagnosis-conversation .customer-message { background: transparent; }
+.operator-tickets-content .diagnosis-conversation .timeline-dot { display: none; }
+.operator-tickets-content .diagnosis-conversation strong { display: block; color: #27485f; font-size: 12px; line-height: 1.4; }
+.operator-tickets-content .diagnosis-conversation .customer-message strong { color: #087caf; }
+.operator-tickets-content .diagnosis-conversation p { margin: 4px 0 0; color: #354e63; font-size: 13px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+.operator-tickets-content .history-timeline strong { font-size: 13px; line-height: 1.5; }
+.operator-tickets-content .history-timeline :is(p, small) { font-size: 12px; line-height: 1.6; color: #63768a; }
+@media (max-width: 680px) { .operator-tickets-content .ticket-detail-column:first-child { border-right: 0; } }

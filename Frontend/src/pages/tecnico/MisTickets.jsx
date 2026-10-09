@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import Pagination from '../../components/Pagination';
+import ResponsiveDateFilter from '../../components/ResponsiveDateFilter';
+import ResponsiveFilterSelect from '../../components/ResponsiveFilterSelect';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   FaCalendarAlt,
   FaCheckCircle,
-  FaChevronLeft,
-  FaChevronRight,
   FaClipboardList,
   FaExclamationTriangle,
   FaEye,
@@ -71,17 +72,37 @@ const MisTickets = () => {
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [evidencePreview, setEvidencePreview] = useState(null);
 
+  const detailRef = useRef(null);
+  const [detailNavigation, setDetailNavigation] = useState(0);
+  useEffect(() => {
+    if (!detailNavigation) return;
+    const frame = window.requestAnimationFrame(() => {
+      const detail = detailRef.current;
+      if (!detail) return;
+      detail.focus({ preventScroll: true });
+      detail.scrollIntoView({
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+        block: 'start',
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [detailNavigation]);
+  const detailRequest = useRef(0);
+  const closeDetail = () => { detailRequest.current += 1; setSelected(null); setLoadingDetail(false); };
+
   const openTicket = async (ticket) => {
+    const request = ++detailRequest.current;
     setSelected(ticket);
+    setDetailNavigation((current) => current + 1);
     setLoadingDetail(true);
     setError('');
     try {
       const data = await ticketService.get(ticket.id);
-      setSelected(data.ticket);
+      if (request === detailRequest.current) setSelected(data.ticket);
     } catch (requestError) {
-      setError(requestError.message);
+      if (request === detailRequest.current) setError(requestError.message);
     } finally {
-      setLoadingDetail(false);
+      if (request === detailRequest.current) setLoadingDetail(false);
     }
   };
 
@@ -89,7 +110,6 @@ const MisTickets = () => {
     ticketService.list()
       .then((data) => {
         setTickets(data.tickets);
-        if (data.tickets[0]) openTicket(data.tickets[0]);
       })
       .catch((requestError) => setError(requestError.message))
       .finally(() => setLoading(false));
@@ -102,7 +122,7 @@ const MisTickets = () => {
         setSelected((current) => {
           const refreshed = data.tickets.find((ticket) => ticket.id === current?.id);
           if (current && refreshed) return { ...current, ...refreshed };
-          return refreshed || data.tickets[0] || null;
+          return null;
         });
       } catch { /* actualización silenciosa */ }
     }, 30000);
@@ -127,7 +147,7 @@ const MisTickets = () => {
       setTickets((current) => current.map((item) => (
         item.id === ticket.id ? { ...item, ...data.ticket } : item
       )));
-      setSelected((current) => ({ ...current, ...data.ticket }));
+      setSelected((current) => current?.id === ticket.id ? { ...current, ...data.ticket } : current);
       setAction(null);
       setNotice(status === 'REPROGRAMADO' ? 'Reprogramación aplicada.' : status === 'RESUELTO' ? 'Ticket finalizado: solución registrada y estado Resuelto.' : `Estado actualizado: ${statusLabel(status)}.`);
       setSolution('');
@@ -158,7 +178,8 @@ const MisTickets = () => {
   }), [tickets, search, statusFilter, priorityFilter, dateFilter, zoneFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const visibleTickets = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const currentPage = Math.min(page, totalPages);
+  const visibleTickets = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
   const completed = tickets.filter((item) => ['RESUELTO', 'CERRADO'].includes(item.status)).length;
   const mapQuery = [selected?.customer_address, selected?.customer_zone].filter(Boolean).join(', ');
 
@@ -191,17 +212,17 @@ const MisTickets = () => {
 
         <section className="technician-filter-panel" aria-label="Filtros de tareas">
           <label className="technician-search"><span>Buscar</span><div><FaSearch /><input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Ticket, cliente o falla" /></div></label>
-          <label><span>Estado</span><select value={statusFilter} onChange={(event) => { setStatusFilter(event.target.value); setPage(1); }}><option value="">Todos</option><option value="ASIGNADO">Asignado</option><option value="EN_CAMINO">En camino</option><option value="EN_PROCESO">En proceso</option><option value="REPROGRAMADO">Reprogramado</option><option value="INCUMPLIMIENTO_VISITA">Incumplimiento de visita</option><option value="RESUELTO">Resuelto</option><option value="CERRADO">Cerrado</option></select></label>
-          <label><span>Prioridad</span><select value={priorityFilter} onChange={(event) => { setPriorityFilter(event.target.value); setPage(1); }}><option value="">Todas</option><option value="ALTA">Alta</option><option value="MEDIA">Media</option><option value="BAJA">Baja</option></select></label>
-          <label><span>Fecha</span><div className="technician-date"><FaCalendarAlt /><input aria-label="Fecha" type="date" value={dateFilter} onChange={(event) => { setDateFilter(event.target.value); setPage(1); }} /></div></label>
-          <label><span>Zona</span><select value={zoneFilter} onChange={(event) => { setZoneFilter(event.target.value); setPage(1); }}><option value="">Todas</option>{zones.map((zone) => <option value={zone} key={zone}>{zone}</option>)}</select></label>
+          <label><span>Estado</span><ResponsiveFilterSelect value={statusFilter} onChange={(event) => { setStatusFilter(event.target.value); setPage(1); }}><option value="">Todos</option><option value="ASIGNADO">Asignado</option><option value="EN_CAMINO">En camino</option><option value="EN_PROCESO">En proceso</option><option value="REPROGRAMADO">Reprogramado</option><option value="INCUMPLIMIENTO_VISITA">Incumplimiento de visita</option><option value="RESUELTO">Resuelto</option><option value="CERRADO">Cerrado</option></ResponsiveFilterSelect></label>
+          <label><span>Prioridad</span><ResponsiveFilterSelect value={priorityFilter} onChange={(event) => { setPriorityFilter(event.target.value); setPage(1); }}><option value="">Todas</option><option value="ALTA">Alta</option><option value="MEDIA">Media</option><option value="BAJA">Baja</option></ResponsiveFilterSelect></label>
+          <div className="technician-date-field"><span>Fecha</span><ResponsiveDateFilter value={dateFilter} onChange={(value) => { setDateFilter(value); setPage(1); }} /></div>
+          <label><span>Zona</span><ResponsiveFilterSelect value={zoneFilter} onChange={(event) => { setZoneFilter(event.target.value); setPage(1); }}><option value="">Todas</option>{zones.map((zone) => <option value={zone} key={zone}>{zone}</option>)}</ResponsiveFilterSelect></label>
           <button type="button" className="technician-filter-button" onClick={() => setPage(1)}><FaFilter /> Filtrar</button>
           <button type="button" className="technician-clear-button" onClick={clearFilters}>Limpiar</button>
         </section>
 
-        <div className="technician-workspace">
+        <div className={`technician-workspace${selected ? '' : ' detail-closed'}`}>
           <section className="technician-table-card" aria-label="Listado de tareas">
-            <div className="technician-table-scroll">
+            <div className="technician-table-scroll" tabIndex={0} role="region" aria-label="Tabla de tickets asignados">
               <table>
                 <thead><tr><th>Ticket</th><th>Cliente</th><th>Tipo de falla</th><th>Prioridad</th><th>Programada</th><th>Estado</th><th>Acción</th></tr></thead>
                 <tbody>
@@ -223,19 +244,11 @@ const MisTickets = () => {
             {loading && <div className="technician-empty"><FaSpinner className="spin" /> Cargando tareas...</div>}
             {!loading && !filtered.length && <div className="technician-empty"><FaClipboardList /><strong>No existen tareas con esos filtros</strong><span>Prueba limpiando o cambiando los criterios de búsqueda.</span></div>}
 
-            {!loading && filtered.length > 0 && <footer className="technician-table-footer">
-              <span>Mostrando {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} de {filtered.length} tareas</span>
-              <nav aria-label="Paginación de tareas">
-                <button type="button" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page === 1} aria-label="Página anterior"><FaChevronLeft /></button>
-                {Array.from({ length: totalPages }, (_, index) => index + 1).map((number) => <button type="button" className={number === page ? 'active' : ''} onClick={() => setPage(number)} key={number}>{number}</button>)}
-                <button type="button" onClick={() => setPage((current) => Math.min(totalPages, current + 1))} disabled={page === totalPages} aria-label="Página siguiente"><FaChevronRight /></button>
-              </nav>
-            </footer>}
+            {!loading && filtered.length > 0 && <Pagination page={currentPage} pageSize={PAGE_SIZE} total={filtered.length} noun="tareas" onPageChange={setPage} />}
           </section>
 
-          <aside className="technician-detail-card">
-            {selected ? <>
-              <header><div><span>Detalle de tarea</span><h2>{selected.ticket_code}</h2></div><button type="button" onClick={() => setSelected(null)} aria-label="Cerrar detalle"><FaTimes /></button></header>
+          {selected && <aside className="technician-detail-card" ref={detailRef} tabIndex={-1} aria-label="Detalle del ticket seleccionado">
+              <header><div><span>Detalle de tarea</span><h2>{selected.ticket_code}</h2></div><button type="button" onClick={closeDetail} aria-label="Cerrar detalle" title="Cerrar detalle del ticket"><FaTimes /></button></header>
               {loadingDetail && <p className="technician-detail-loading"><FaSpinner className="spin" /> Actualizando información...</p>}
 
               <dl className="technician-ticket-data">
@@ -279,8 +292,7 @@ const MisTickets = () => {
                   <button className="success" disabled={!!updating || selected.status !== 'EN_PROCESO'} onClick={() => {setSolution('');setAction({ticket:selected,status:'RESUELTO'});}}><FaCheckCircle /> Marcar resuelto</button>
                 </div>
               </section>
-            </> : <div className="technician-detail-empty"><FaEye /><strong>Selecciona una tarea</strong><span>Usa el botón de la tabla para consultar y actualizar todos sus datos.</span></div>}
-          </aside>
+          </aside>}
         </div>
       </main>
       {evidencePreview && <EvidencePreviewModal evidence={evidencePreview} onClose={() => setEvidencePreview(null)} />}

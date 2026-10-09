@@ -87,6 +87,9 @@ const updateStatus = async (req, res, next) => {
     }
     const visible = await Ticket.findVisibleById(req.params.id, req.user);
     if (!visible) return res.status(404).json({ message: 'Ticket no encontrado' });
+    if (status === 'ASIGNADO' && !visible.technician_id) {
+      return res.status(400).json({ message: 'Asigna un técnico responsable antes de guardar cambios. Usa la acción Asignar técnico e indica la fecha y hora de visita.' });
+    }
     if (req.user.user_type === 'tecnico' && status === 'EN_PROCESO' && visible.status !== 'EN_CAMINO') {
       return res.status(409).json({message:'Primero debes marcar En camino antes de iniciar atención.'});
     }

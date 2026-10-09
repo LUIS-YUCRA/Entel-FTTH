@@ -418,3 +418,30 @@
   .notification-pagination button { transition: none; }
   .notification-pagination button:hover:not(:disabled), .notification-pagination button:active:not(:disabled) { transform: none; }
 }
+
+/* Same numbered controls and integrated white footer as technician tickets. */
+.notification-panel .notification-pagination {
+  margin: 0; padding: 12px 14px; gap: 14px;
+  border: 0; border-top: 1px solid #dce5ed; border-radius: 0;
+  background: #fff; color: #61758a; font-size: 12px;
+  overflow-x: auto;
+}
+.notification-panel .notification-pagination nav { gap: 5px; }
+.notification-panel .notification-pagination button {
+  width: 28px; min-width: 28px; height: 28px; padding: 0;
+  display: grid; place-items: center; border: 1px solid #d4e0e9;
+  border-radius: 6px; color: #517088; background: #fff; font-size: 12px;
+}
+.notification-panel .notification-pagination button.active {
+  border-color: #0b4f85; color: #fff; background: #0b4f85;
+}
+.notification-panel .notification-pagination button:hover:not(:disabled) {
+  background: #08689b; color: #fff; border-color: #08689b;
+}
+.notification-panel .notification-pagination button:active:not(:disabled) {
+  background: #064d76; color: #fff; border-color: #064d76;
+}
+@media (max-width: 640px) {
+  .notification-panel .notification-pagination { padding: 10px 8px; gap: 8px; }
+  .notification-panel .notification-pagination button { min-width: 36px; width: 36px; height: 44px; }
+}
