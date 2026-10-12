@@ -2,7 +2,6 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
-const { getRecoveryBaseUrl } = require('./RecoveryUrl');
 const escapeHtml = (value) => String(value)
   .replaceAll('&', '&amp;')
   .replaceAll('<', '&lt;')
@@ -39,7 +38,9 @@ const getTransporter = () => {
 };
 
 const sendRecoveryEmail = async (email, token) => {
-  const resetBase = getRecoveryBaseUrl();
+  const resetBase = process.env.NODE_ENV === 'production'
+    ? 'https://servicioftth.com/reset-password'
+    : 'http://localhost:5173/reset-password';
   const resetLink = `${resetBase}/${encodeURIComponent(token)}`;
   const credentials = getMailCredentials();
   const requestId = crypto.randomUUID();
