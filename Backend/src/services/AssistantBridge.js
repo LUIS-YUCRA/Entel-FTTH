@@ -1,5 +1,5 @@
 const path = require('path');
-const { PythonShell } = require('python-shell');
+const { runPython } = require('./PythonRuntime');
 
 const parseLastJsonLine = (lines) => {
   for (let index = lines.length - 1; index >= 0; index -= 1) {
@@ -28,20 +28,24 @@ const processAssistantMessage = async ({ message, customerId, customer, context 
     'utf8',
   ).toString('base64url');
 
-  const lines = await PythonShell.run('assistant_runner.py', {
-    mode: 'text',
-    pythonPath: process.env.PYTHON_PATH || 'python',
-    pythonOptions: ['-u'],
-    scriptPath: chatDirectory,
-    args: [message, String(customerId), encodedContext],
-    env: { ...process.env, PYTHONIOENCODING: 'utf-8' },
-  });
-
-  const result = parseLastJsonLine(lines);
-  if (!result.success) {
-    throw new Error(result.error || 'No se pudo procesar el mensaje');
+  try {
+    const lines = await runPython([
+      path.join(chatDirectory, 'assistant_runner.py'),
+      message, String(customerId), encodedContext,
+    ]);
+    const result = parseLastJsonLine(lines);
+    if (!result.success || typeof result.response !== 'string' || !result.response.trim()) {
+      throw new Error(result.traceback || result.error || 'Respuesta vacía del asistente');
+    }
+    return result;
+  } catch (cause) {
+    console.error('Fallo del asistente Python:', cause);
+    const error = new Error('El asistente no está disponible en el servidor. Intenta más tarde o contacta al soporte.');
+    error.status = 503;
+    error.code = 'ASSISTANT_UNAVAILABLE';
+    error.cause = cause;
+    throw error;
   }
-  return result;
 };
 
 module.exports = { processAssistantMessage };

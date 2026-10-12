@@ -2,7 +2,9 @@ import { sessionStore } from './SessionStore';
 import { fetchWithConnection, networkActivity } from './NetworkActivity';
 
 const defaultApiHost = typeof window === 'undefined' ? 'localhost' : window.location.hostname;
-export const API_URL = import.meta.env.VITE_API_URL || `http://${defaultApiHost}:3001/api`;
+export const API_URL = (import.meta.env.DEV
+  ? (import.meta.env.VITE_DEV_API_URL || `http://${defaultApiHost}:3001/api`)
+  : (import.meta.env.VITE_API_URL || '/api')).replace(/\/$/, '');
 
 export const apiRequest = async (path, options = {}, allowRefresh = true) => {
   const end = options.silent ? () => {} : networkActivity.begin();
@@ -39,7 +41,10 @@ const performRequest = async (path, options = {}, allowRefresh = true) => {
     if (response.status === 401) {
       sessionStore.clear();
     }
-    throw new Error(data.message || data.error || 'Error en la solicitud');
+    const error = new Error(data.message || data.error || 'Error en la solicitud');
+    error.code = data.code;
+    error.status = response.status;
+    throw error;
   }
   return data;
 };

@@ -27,9 +27,9 @@ const getTransporter = () => {
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT),
     secure: Number(process.env.SMTP_PORT) === 465,
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
+    connectionTimeout: 20000,
+    greetingTimeout: 20000,
+    socketTimeout: 30000,
     auth: {
       user: credentials.user,
       pass: credentials.password,
@@ -46,8 +46,8 @@ const sendRecoveryEmail = async (email, token) => {
   const requestedAt = new Date();
   const transporter = getTransporter();
 
-  await transporter.verify();
-  const delivery = await transporter.sendMail({
+  let delivery;
+  try { delivery = await transporter.sendMail({
     from: `"ENTEL FTTH" <${credentials.user}>`,
     replyTo: credentials.user,
     to: email,
@@ -73,8 +73,7 @@ const sendRecoveryEmail = async (email, token) => {
     headers: {
       'X-Entity-Ref-ID': requestId,
     },
-  });
-  transporter.close();
+  }); } finally { transporter.close(); }
 
   const accepted = delivery.accepted?.some(
     (recipient) => String(recipient).toLowerCase() === email.toLowerCase(),
@@ -133,5 +132,5 @@ const sendNotificationEmail = async (email, title, message) => {
 };
 
 module.exports = {
-  sendRecoveryEmail, sendNotificationEmail, isMailConfigured, buildNotificationEmail,
+  sendRecoveryEmail, sendNotificationEmail, isMailConfigured, buildNotificationEmail, getTransporter,
 };

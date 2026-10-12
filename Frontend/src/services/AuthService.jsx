@@ -4,7 +4,7 @@ import { sessionStore } from './SessionStore';
 export const authService = {
   login: async (credentials) => {
     const data = await apiRequest('/auth/login', {
-      method: 'POST',
+      method: 'POST', silent: true,
       body: JSON.stringify(credentials),
     });
     sessionStore.storeSession(data);
@@ -13,12 +13,13 @@ export const authService = {
   },
 
   register: (userData) => apiRequest('/auth/register', {
-    method: 'POST',
+    method: 'POST', silent: true,
     body: JSON.stringify(userData),
   }),
 
   forgotPassword: (email) => apiRequest('/password/forgot-password', {
-    method: 'POST',
+    timeoutMs: 90000,
+    method: 'POST', silent: true,
     body: JSON.stringify({ email }),
   }),
 

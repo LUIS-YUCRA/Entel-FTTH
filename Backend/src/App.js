@@ -13,6 +13,9 @@ const notificationRoutes = require('./routes/NotificationRoutes');
 const app = express();
 app.disable('x-powered-by');
 const allowedOrigins = [
+  'https://servicioftth.com',
+  'https://www.servicioftth.com',
+  ...String(process.env.FRONTEND_URL || '').split(',').map((origin) => origin.trim().replace(/\/$/, '')).filter(Boolean),
   'https://localhost:5173',
   'http://localhost:5173',
   'http://127.0.0.1:5173',
@@ -92,7 +95,8 @@ app.use((error, req, res, next) => {
   console.error('Error:', error);
   res.status(error.status || 500).json({
     error: 'Error interno del servidor',
-    message: process.env.NODE_ENV === 'development' ? error.message : 'Algo salió mal',
+    code: error.code === 'ASSISTANT_UNAVAILABLE' ? error.code : undefined,
+    message: error.code === 'ASSISTANT_UNAVAILABLE' || process.env.NODE_ENV === 'development' ? error.message : 'Algo salió mal',
   });
 });
 

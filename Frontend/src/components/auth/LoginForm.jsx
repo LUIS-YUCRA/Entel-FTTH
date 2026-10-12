@@ -187,6 +187,8 @@ const LoginForm = () => {
       return;
     }
 
+    if (recovering) return;
+    setErrors({});
     setRecovering(true);
     setRecoveryMessage('');
 
@@ -320,9 +322,11 @@ const LoginForm = () => {
             type="submit"
             className="btn-primary"
             disabled={loading}
+            aria-busy={loading}
+            aria-label={loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
           >
             <span>
-              {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+              {loading ? <span className="auth-button-spinner" aria-hidden="true" /> : 'Iniciar Sesión'}
             </span>
 
             {!loading && (
@@ -361,10 +365,12 @@ const LoginForm = () => {
                 type="button"
                 onClick={handleForgotPassword}
                 disabled={recovering}
+                aria-busy={recovering}
+                aria-label={recovering ? 'Enviando instrucciones' : 'Enviar instrucciones'}
                 className="btn-secondary"
               >
                 {recovering
-                  ? 'Enviando...'
+                  ? <span className="auth-button-spinner" aria-hidden="true" />
                   : 'Enviar instrucciones'}
               </button>
             </div>

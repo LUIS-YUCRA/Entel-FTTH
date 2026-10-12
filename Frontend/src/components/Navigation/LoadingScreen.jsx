@@ -27,7 +27,7 @@ function RouteLoading({ isAuth, isAssistant }) {
     const timer = setTimeout(() => setSlow(true), 450);
     return () => { clearTimeout(timer); setSlow(false); };
   }, [pending]);
-  const busy = (!online && !isAssistant) || entering || (pending > 0 && slow);
+  const busy = !isAuth && ((!online && !isAssistant) || entering || (pending > 0 && slow));
   useEffect(() => {
     const content = document.getElementById('route-content');
     if (!content) return;

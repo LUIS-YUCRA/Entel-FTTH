@@ -896,3 +896,20 @@
   }
 
 }
+.auth-button-spinner {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  border: 3px solid rgba(255, 255, 255, .35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: auth-button-spin .7s linear infinite;
+  vertical-align: middle;
+}
+.btn-primary[aria-busy="true"], .btn-secondary[aria-busy="true"] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: wait;
+}
+@keyframes auth-button-spin { to { transform: rotate(360deg); } }

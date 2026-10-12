@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('./env');
 const User = require('../models/User');
 const { pool } = require('./db');
 

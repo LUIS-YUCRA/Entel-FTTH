@@ -52,6 +52,16 @@ const forgotPassword = async (req, res, next) => {
       deliveryId: delivery.requestId,
     });
   } catch (error) {
+    const mailErrors = {
+      EAUTH: 'Gmail rechazó las credenciales. Configura una contraseña de aplicación válida en el backend.',
+      ETIMEDOUT: 'El servidor no pudo conectar con el correo a tiempo. Revisa la salida SMTP y los puertos del hosting.',
+      ENOTFOUND: 'No se pudo resolver el servidor de correo. Revisa SMTP_HOST en el .env del backend.',
+      ESOCKET: 'Falló la conexión segura al servidor de correo. Revisa la red y la configuración SMTP.',
+    };
+    if (mailErrors[error.code]) {
+      console.error('Fallo de recuperación SMTP:', { code: error.code, command: error.command });
+      return res.status(503).json({ code: 'MAIL_UNAVAILABLE', message: mailErrors[error.code] });
+    }
     return next(error);
   }
 };

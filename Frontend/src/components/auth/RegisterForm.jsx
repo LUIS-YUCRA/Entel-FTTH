@@ -408,9 +408,11 @@ const RegisterForm = () => {
             type="submit"
             className="btn-primary"
             disabled={loading}
+            aria-busy={loading}
+            aria-label={loading ? 'Creando cuenta...' : 'Crear Cuenta'}
           >
             <span>
-              {loading ? 'Creando cuenta...' : 'Crear Cuenta'}
+              {loading ? <span className="auth-button-spinner" aria-hidden="true" /> : 'Crear Cuenta'}
             </span>
 
             {!loading && (

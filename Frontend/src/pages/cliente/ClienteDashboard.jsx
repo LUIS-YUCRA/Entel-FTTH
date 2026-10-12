@@ -172,7 +172,7 @@ const ClienteDashboard = () => {
         }
       }
       await refreshConversations(response.conversationId).catch(() => {});
-    } catch {
+    } catch (error) {
       // Reconcile the stored reply before reporting a lost network response.
       try {
         const { conversations: stored } = await chatService.list();
@@ -184,7 +184,9 @@ const ClienteDashboard = () => {
         }
       } catch { /* Keep the draft available when the connection is unavailable. */ }
       setMessage(cleanMessage);
-      setError('No recibimos la respuesta del asistente. Comprueba tu conexión y consulta este chat antes de reenviar el mensaje.');
+      setError(error.code === 'ASSISTANT_UNAVAILABLE'
+        ? error.message
+        : 'No recibimos la respuesta del asistente. Comprueba tu conexión y consulta este chat antes de reenviar el mensaje.');
     } finally {
       setSending(false);
     }
