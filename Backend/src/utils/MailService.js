@@ -100,7 +100,10 @@ const isMailConfigured = () => {
 };
 
 const buildNotificationEmail = (email, title, message) => {
-  const ticketsUrl = `${String(process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '')}/Tickets`;
+  const frontendUrl = process.env.NODE_ENV === 'production'
+    ? 'https://servicioftth.com'
+    : 'http://localhost:5173';
+  const notificationsUrl = `${frontendUrl}/notificaciones`;
   const logoPath = path.resolve(__dirname, '../../../Frontend/src/assets/entel_bolivia.webp');
   const attachments = fs.existsSync(logoPath)
     ? [{ filename: 'entel-bolivia.webp', path: logoPath, cid: 'entel-logo' }]
@@ -108,8 +111,8 @@ const buildNotificationEmail = (email, title, message) => {
   return {
     to: email,
     subject: title,
-    text: `${message}\n\nConsulta tu cuenta: ${ticketsUrl.replace('/Tickets', '/notificaciones')}`,
-    html: `<div style="font-family:Arial,sans-serif;font-size:16px;line-height:1.6"><h2>${escapeHtml(title)}</h2><p>${escapeHtml(message).replaceAll('\n', '<br>')}</p><a href="${escapeHtml(ticketsUrl.replace('/Tickets', '/notificaciones'))}">Consultar notificaciones</a></div>`,
+    text: `${message}\n\nConsulta tu cuenta: ${notificationsUrl}`,
+    html: `<div style="font-family:Arial,sans-serif;font-size:16px;line-height:1.6"><h2>${escapeHtml(title)}</h2><p>${escapeHtml(message).replaceAll('\n', '<br>')}</p><a href="${escapeHtml(notificationsUrl)}">Consultar notificaciones</a></div>`,
     attachments,
   };
 };
