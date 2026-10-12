@@ -1,15 +1,16 @@
 const ROLES = ['cliente', 'operador', 'tecnico', 'administrador'];
-const PERSONAL_DOMAINS = ['gmail.com', 'entel.bo'];
+const isAllowedEmail = (email, userType = 'cliente') => {
+  const normalized = String(email || '').trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) return false;
+  if (userType === 'cliente') return true;
+  const domain = normalized.split('@')[1];
+  return ['gmail.com', 'outlook.com', 'entel.bo', 'emi.edu.bo'].includes(domain)
+    || /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:emi\.edu\.bo|entel\.bo)$/.test(domain);
+};
+const EMAIL_DOMAIN_MESSAGE = 'Utiliza Gmail, Outlook, correo institucional EMI (@emi.edu.bo o sus subdominios) o ENTEL (@entel.bo)';
 
 const validateDomain = (email, userType) => {
-  const domain = email.split('@')[1]?.toLowerCase();
-  if (userType === 'cliente' && !PERSONAL_DOMAINS.includes(domain)) {
-    return 'Los clientes deben usar un correo personal válido';
-  }
-  if (userType !== 'cliente' && domain !== 'entel.bo' && !domain?.endsWith('.entel.bo')) {
-    return 'El personal debe usar correo institucional @entel.bo';
-  }
-  return null;
+  return isAllowedEmail(email, userType || 'cliente') ? null : EMAIL_DOMAIN_MESSAGE;
 };
 
 const validateBase = (req, includeName) => {
@@ -25,7 +26,7 @@ const validateBase = (req, includeName) => {
     errors.push('La contraseña debe tener al menos 8 caracteres');
   }
   if (includeName && userType && userType !== 'cliente') errors.push('Solo se pueden registrar clientes');
-  if (email && userType && ROLES.includes(userType)) {
+  if (email && (includeName || (userType && ROLES.includes(userType)))) {
     const domainError = validateDomain(email, userType);
     if (domainError) errors.push(domainError);
   }
@@ -60,4 +61,4 @@ const validateStaff = (req, res, next) => {
   if (typeof password !== 'string' || password.length < 8 || !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/.test(password)) return res.status(400).json({message:'La contraseña debe tener 8 caracteres, mayúscula, minúscula, número y símbolo'});
   return next();
 };
-module.exports = { validateLogin, validateRegister, validateStaff };
+module.exports = { validateLogin, validateRegister, validateStaff, isAllowedEmail, EMAIL_DOMAIN_MESSAGE };

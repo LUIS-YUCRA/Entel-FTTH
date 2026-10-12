@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const { isAllowedEmail, EMAIL_DOMAIN_MESSAGE } = require('../middleware/ValidationMiddleware');
 const { query } = require('../config/db');
 const {
   generateToken,
@@ -98,16 +99,9 @@ const updateProfile = async (req, res, next) => {
       }
     }
     const email = String(req.body.email || req.user.email).trim().toLowerCase();
-    const domain = email.split('@')[1];
-    const personalDomains = ['gmail.com'];
-    const validDomain = req.user.user_type === 'cliente'
-      ? personalDomains.includes(domain)
-      : domain === 'entel.bo' || domain?.endsWith('.entel.bo');
-    if (!validDomain) {
+    if (!isAllowedEmail(email, req.user.user_type)) {
       return res.status(400).json({
-        message: req.user.user_type === 'cliente'
-          ? 'Los clientes deben usar un correo personal válido'
-          : 'El personal debe usar correo institucional @entel.bo',
+        message: EMAIL_DOMAIN_MESSAGE,
       });
     }
     const existing = await User.findByEmail(email);

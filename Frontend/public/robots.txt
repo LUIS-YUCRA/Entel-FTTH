@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /$
+Allow: /login$
+Allow: /assets/
+Allow: /favicon.svg
+Allow: /sitemap.xml
+Disallow: /
+
+Sitemap: https://servicioftth.com/sitemap.xml

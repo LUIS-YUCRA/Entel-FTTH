@@ -95,7 +95,7 @@ const RegisterForm = () => {
 
     if (!formData.email) {
       newErrors.email = 'El correo electrónico es requerido';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
       newErrors.email = 'Correo electrónico inválido';
     }
 

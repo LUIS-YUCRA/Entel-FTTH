@@ -1,20 +1,19 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { sendRecoveryEmail } = require('../utils/MailService');
+const { isAllowedEmail } = require('../middleware/ValidationMiddleware');
 
 const allowedRecoveryDomain = (user, email) => {
-  const domain = email.split('@')[1];
-  if (user.user_type === 'cliente') return domain === 'gmail.com';
-  return ['tecnico', 'operador', 'administrador'].includes(user.user_type)
-    && domain === 'entel.bo';
+  return ['cliente', 'tecnico', 'operador', 'administrador'].includes(user.user_type)
+    && isAllowedEmail(email, user.user_type);
 };
 
 const forgotPassword = async (req, res, next) => {
   try {
     const email = String(req.body.email || '').trim().toLowerCase();
-    if (!/^[^\s@]+@(gmail\.com|entel\.bo)$/.test(email)) {
+    if (!isAllowedEmail(email)) {
       return res.status(400).json({
-        message: 'Utiliza un correo @gmail.com para clientes o @entel.bo para personal',
+        message: 'Ingresa un correo electrónico válido',
       });
     }
 

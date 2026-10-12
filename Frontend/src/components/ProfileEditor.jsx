@@ -33,8 +33,8 @@ const normalize = (form) => ({
 const validate = (form, userType) => {
   if (form.fullName.length < 3) return 'El nombre completo debe tener al menos 3 caracteres.';
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return 'Ingresa un correo electrónico válido.';
-  if (userType === 'tecnico' && !/(^|\.)entel\.bo$/i.test(form.email.split('@')[1] || '')) {
-    return 'El técnico debe utilizar un correo institucional @entel.bo.';
+  if (userType !== 'cliente' && !/^(?:gmail\.com|outlook\.com|(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)*(?:emi\.edu\.bo|entel\.bo))$/i.test(form.email.split('@')[1] || '')) {
+    return 'Utiliza Gmail, Outlook o un correo institucional de EMI o ENTEL.';
   }
   if (userType === 'tecnico' && (!Number.isInteger(form.maxActiveTickets) || form.maxActiveTickets < 1 || form.maxActiveTickets > 30)) {
     return 'La carga máxima debe ser un número entero entre 1 y 30.';

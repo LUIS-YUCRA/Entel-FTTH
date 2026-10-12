@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const { isAllowedEmail, EMAIL_DOMAIN_MESSAGE } = require('../middleware/ValidationMiddleware');
 const { query } = require('../config/db');
 const { removeAccount } = require('../services/AccountRemovalService');
 
@@ -35,8 +36,7 @@ const create = async (req, res, next) => {
     const limit = limitResult.rows[0]?.value ?? (userType === 'operador' ? 5 : 4);
     const count = await query('SELECT COUNT(*)::int AS total FROM users WHERE user_type = $1 AND is_active = TRUE', [userType]);
     if (count.rows[0].total >= limit) return res.status(409).json({ message: `Se alcanzó el límite máximo de usuarios para este rol` });
-    const domain = String(email).toLowerCase().split('@')[1];
-    if (!domain || (domain !== 'entel.bo' && !domain.endsWith('.entel.bo'))) return res.status(400).json({ message: 'El personal debe usar correo institucional @entel.bo' });
+    if (!isAllowedEmail(email, userType)) return res.status(400).json({ message: EMAIL_DOMAIN_MESSAGE });
     if (await User.findByEmail(email)) {
       return res.status(409).json({ message: 'El correo ya está registrado' });
     }
