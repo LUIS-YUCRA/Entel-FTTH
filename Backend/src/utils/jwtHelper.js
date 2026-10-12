@@ -6,6 +6,17 @@ const requireSecret = (name) => {
   return process.env[name];
 };
 
+const validateJwtConfiguration = () => {
+  const access = requireSecret('JWT_SECRET');
+  const refresh = requireSecret('JWT_REFRESH_SECRET');
+  if (process.env.NODE_ENV === 'production') {
+    if ([access, refresh].some(value => value.length < 32 || /cambia_por|example|changeme/i.test(value))) {
+      throw new Error('Producción requiere claves JWT aleatorias de al menos 32 caracteres, sin valores de ejemplo.');
+    }
+    if (access === refresh) throw new Error('JWT_SECRET y JWT_REFRESH_SECRET deben ser diferentes.');
+  }
+};
+
 const generateToken = (user) => jwt.sign(
   {
     userId: user.id,
@@ -19,7 +30,7 @@ const generateToken = (user) => jwt.sign(
 );
 
 const verifyToken = (token) => {
-  const decoded = jwt.verify(token, requireSecret('JWT_SECRET'));
+  const decoded = jwt.verify(token, requireSecret('JWT_SECRET'), { algorithms: ['HS256'] });
   if (decoded.type !== 'access') throw new Error('Tipo de token inválido');
   return decoded;
 };
@@ -31,12 +42,13 @@ const generateRefreshToken = (user) => jwt.sign(
 );
 
 const verifyRefreshToken = (token) => {
-  const decoded = jwt.verify(token, requireSecret('JWT_REFRESH_SECRET'));
+  const decoded = jwt.verify(token, requireSecret('JWT_REFRESH_SECRET'), { algorithms: ['HS256'] });
   if (decoded.type !== 'refresh') throw new Error('Tipo de token inválido');
   return decoded;
 };
 
 module.exports = {
+  validateJwtConfiguration,
   generateToken,
   verifyToken,
   generateRefreshToken,

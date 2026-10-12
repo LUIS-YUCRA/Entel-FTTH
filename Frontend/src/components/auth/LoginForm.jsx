@@ -71,7 +71,7 @@ const LoginForm = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
 
-  const [recoveryMessage, setRecoveryMessage] = useState('');
+  const [recoveryMessage, setRecoveryMessage] = useState(state?.passwordReset ? 'Contraseña actualizada correctamente. Inicia sesión con tu nueva contraseña.' : '');
   const [recovering, setRecovering] = useState(false);
 
   const [formData, setFormData] = useState({

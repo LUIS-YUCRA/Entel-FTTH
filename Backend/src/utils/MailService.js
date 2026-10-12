@@ -2,6 +2,7 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const { getRecoveryBaseUrl } = require('./RecoveryUrl');
 const escapeHtml = (value) => String(value)
   .replaceAll('&', '&amp;')
   .replaceAll('<', '&lt;')
@@ -38,8 +39,7 @@ const getTransporter = () => {
 };
 
 const sendRecoveryEmail = async (email, token) => {
-  const resetBase = process.env.FRONTEND_RESET_URL
-    || `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password`;
+  const resetBase = getRecoveryBaseUrl();
   const resetLink = `${resetBase}/${encodeURIComponent(token)}`;
   const credentials = getMailCredentials();
   const requestId = crypto.randomUUID();

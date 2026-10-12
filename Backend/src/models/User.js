@@ -233,11 +233,21 @@ class User {
 
   static async updatePassword(userId, newPassword) {
     const hashedPassword = await bcrypt.hash(newPassword, 12);
-    await query(
-      `UPDATE users SET password = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`,
-      [hashedPassword, userId],
-    );
-    await query('DELETE FROM sessions WHERE user_id = $1', [userId]);
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query(
+        'UPDATE users SET password = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+        [hashedPassword, userId],
+      );
+      await client.query('DELETE FROM sessions WHERE user_id = $1', [userId]);
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 }
 

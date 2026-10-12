@@ -1,4 +1,5 @@
 require('./src/config/env');
+require('./src/utils/jwtHelper').validateJwtConfiguration();
 const { pool } = require('./src/config/db');
 const app = require('./src/App');
 const Ticket = require('./src/models/Ticket');
