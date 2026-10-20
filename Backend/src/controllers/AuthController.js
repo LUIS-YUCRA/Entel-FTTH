@@ -1,5 +1,5 @@
 const User = require('../models/User');
-const { isAllowedEmail, EMAIL_DOMAIN_MESSAGE } = require('../middleware/ValidationMiddleware');
+const { isAllowedEmail, isEntelEmail, CLIENT_EMAIL_MESSAGE, EMAIL_DOMAIN_MESSAGE } = require('../middleware/ValidationMiddleware');
 const { query } = require('../config/db');
 const {
   generateToken,
@@ -39,6 +39,7 @@ const login = async (req, res, next) => {
     const user = await User.findByEmail(email);
     const valid = user
       && user.is_active
+      && !(user.user_type === 'cliente' && isEntelEmail(user.email))
       && await User.verifyPassword(password, user.password);
 
     if (!valid) {
@@ -62,9 +63,12 @@ const login = async (req, res, next) => {
     );
     await auditLogin(user.id, 'LOGIN_EXITOSO', user.email, req);
 
-    const { password: omitted, ...safeUser } = user;
+    if(user.user_type==='cliente')await require('../services/ServiceIdentity').serviceIdentity.refresh(user.id);
+    const profile=user.user_type==='cliente'?await User.findProfileById(user.id):user;
+    const { password: omitted, ...safeUser } = profile||user;
     return res.json({ success: true, token, refreshToken, user: safeUser });
   } catch (error) {
+    if(error.code==='23505')return res.status(409).json({message:'El correo o el número de instancia ya está registrado.'});
     return next(error);
   }
 };
@@ -72,12 +76,17 @@ const login = async (req, res, next) => {
 const register = async (req, res, next) => {
   try {
     const { fullName, email, password, serviceNumber } = req.body;
+    if (req.body.userType && req.body.userType !== 'cliente') {
+      return res.status(400).json({ message: 'Solo se pueden registrar clientes' });
+    }
+    if (!isAllowedEmail(email, 'cliente')) return res.status(400).json({ message: CLIENT_EMAIL_MESSAGE });
     if (await User.findByEmail(email)) {
       return res.status(409).json({ message: 'El correo ya está registrado' });
     }
     const user = await User.create({ fullName, email, password, userType: 'cliente', serviceNumber });
     return res.status(201).json({ success: true, user });
   } catch (error) {
+    if(error.code==='23505')return res.status(409).json({message:'El correo o el número de instancia ya está registrado.'});
     return next(error);
   }
 };
@@ -88,6 +97,16 @@ const getProfile = async (req, res) => {
 
 const updateProfile = async (req, res, next) => {
   try {
+    if(req.user.user_type==='cliente'&&(req.body.serviceNumber!==undefined||req.body.customerCategory!==undefined)){
+      const current=await User.findProfileById(req.user.id);
+      if((req.body.serviceNumber!==undefined&&String(req.body.serviceNumber)!==String(current.service_number))||(req.body.customerCategory!==undefined&&String(req.body.customerCategory)!==String(current.customer_category))){
+        return res.status(400).json({message:'La instancia y la categoría del servicio las determina el registro de servicios y no pueden modificarse desde tu perfil.'});
+      }
+    }
+    if(req.user.user_type==='cliente'){
+      const {validateProfileField}=require('../services/CustomerProfileSupport');
+      for(const field of ['ci','phone','address','zone'])if(req.body[field]!==undefined&&req.body[field]!==''&&!validateProfileField(field,req.body[field]))return res.status(400).json({message:'Revisa el formato del campo '+({ci:'CI',phone:'teléfono',address:'domicilio',zone:'zona'}[field])+'.'});
+    }
     const fullName = String(req.body.fullName ?? '').trim();
     if (req.body.fullName !== undefined && fullName.length < 3) {
       return res.status(400).json({ message: 'El nombre completo debe tener al menos 3 caracteres' });
@@ -101,7 +120,7 @@ const updateProfile = async (req, res, next) => {
     const email = String(req.body.email || req.user.email).trim().toLowerCase();
     if (!isAllowedEmail(email, req.user.user_type)) {
       return res.status(400).json({
-        message: EMAIL_DOMAIN_MESSAGE,
+        message: req.user.user_type === 'cliente' ? CLIENT_EMAIL_MESSAGE : EMAIL_DOMAIN_MESSAGE,
       });
     }
     const existing = await User.findByEmail(email);
@@ -112,7 +131,7 @@ const updateProfile = async (req, res, next) => {
     return res.json({ success: true, user });
   } catch (error) {
     if (error.code === '23505') {
-      return res.status(409).json({ message: 'El correo o código de empleado ya está registrado' });
+      return res.status(409).json({ message: 'El correo o CI de empleado ya está registrado' });
     }
     return next(error);
   }
@@ -198,7 +217,7 @@ const refreshToken = async (req, res, next) => {
          AND ($3::boolean = FALSE OR last_activity_at > NOW() - INTERVAL '2 minutes')`,
       [user.id, req.body.refreshToken, user.user_type === 'administrador'],
     );
-    if (!user?.is_active || !session?.rows[0]) {
+    if (!user?.is_active || !session?.rows[0] || (user.user_type === 'cliente' && isEntelEmail(user.email))) {
       return res.status(401).json({ message: 'Refresh token inválido' });
     }
     const token = generateToken(user);

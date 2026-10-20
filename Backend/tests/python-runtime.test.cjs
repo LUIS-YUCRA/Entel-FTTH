@@ -30,6 +30,7 @@ test('Python warnings do not discard a successful JSON response', async () => {
     assert.equal(options.windowsHide, true);
     assert.equal(options.env.PYTHONIOENCODING, 'utf-8');
     done(null, '{"success":true}\n', 'warning only');
+    return {stdin:{on(){},end(){}}};
   });
   const lines = await api.runPython(['assistant_runner.py']);
   assert.equal(JSON.parse(lines[0]).success, true);
@@ -37,4 +38,13 @@ test('Python warnings do not discard a successful JSON response', async () => {
 test('Python launch failures remain errors', async () => {
   const api = runtime('linux', '', () => false, (executable, args, options, done) => done(new Error('ENOENT'), '', ''));
   await assert.rejects(() => api.runPython([]), /ENOENT/);
+});
+test('large context travels through stdin, not command-line arguments',async()=>{
+ let received;
+ const api=runtime('linux','',()=>false,(_exe,args,_opts,done)=>{
+  assert.deepEqual(Array.from(args),['-u','assistant_runner.py','--stdin']);
+  return {stdin:{on(){},end(input){received=input;done(null,'{"success":true}\n','');}}};
+ });
+ const input=JSON.stringify({message:'hola',context:'x'.repeat(100000)});
+ await api.runPython(['assistant_runner.py','--stdin'],input);assert.equal(received,input);
 });

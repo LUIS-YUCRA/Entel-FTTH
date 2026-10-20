@@ -33,6 +33,7 @@ const normalize = (form) => ({
 const validate = (form, userType) => {
   if (form.fullName.length < 3) return 'El nombre completo debe tener al menos 3 caracteres.';
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return 'Ingresa un correo electrónico válido.';
+  if (userType === 'cliente' && /(^|\.)entel\.bo$/i.test(form.email.split('@')[1] || '')) return 'Los correos @entel.bo están reservados para el personal registrado por el administrador.';
   if (userType !== 'cliente' && !/^(?:gmail\.com|outlook\.com|(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)*(?:emi\.edu\.bo|entel\.bo))$/i.test(form.email.split('@')[1] || '')) {
     return 'Utiliza Gmail, Outlook o un correo institucional de EMI o ENTEL.';
   }

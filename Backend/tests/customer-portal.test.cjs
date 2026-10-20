@@ -5,6 +5,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 const {createRequire} = require('node:module');
 function load(file, overrides) {
+  overrides = {'../services/AssistantKnowledgeService':{knowledge:{approved:async()=>[]},normalize:value=>String(value).toLowerCase()},'../services/AssistantTurns':{turns:{fail:async()=>{}}},...overrides};
   const filename = path.resolve(__dirname, '../src', file);
   const realRequire = createRequire(filename);
   const module = {exports:{}};
@@ -51,4 +52,19 @@ test('own profile updates cannot replace the registered instance',async()=>{
   const profile=await model.updateOwnProfile(8,{fullName:'Cliente Prueba',email:'test@gmail.com',serviceNumber:'999999'},'cliente');
   const update=calls.find(call=>call.sql.includes('INSERT INTO customers'));
   assert.match(update.sql,/service_number = customers.service_number/);assert.equal(profile.service_number,'123456');
+  assert.match(update.sql,/customer_category = CASE WHEN \$8::boolean/);
+  assert.equal(update.params[7],false);
+  assert.equal(update.params[8],false);assert.equal(update.params[10],false);assert.equal(update.params[11],false);
+});
+
+test('category changes require the authorized administrative option',async()=>{
+  const calls=[];const client={query:async(sql,params)=>{calls.push({sql,params});return {rows:[]};},release(){}};
+  const model=load('models/User.js',{'../config/db':{pool:{connect:async()=>client},query:async()=>({rows:[{}]})}});
+  await model.updateOwnProfile(8,{customerCategory:'INSTITUCION'},'cliente');
+  const denied=calls.find(c=>c.sql.includes('INSERT INTO customers'));
+  assert.equal(denied.params[6],'HOGAR');assert.equal(denied.params[7],false);
+  calls.length=0;
+  await model.updateOwnProfile(8,{customerCategory:'INSTITUCION'},'cliente',{allowCategoryChange:true});
+  const accepted=calls.find(c=>c.sql.includes('INSERT INTO customers'));
+  assert.equal(accepted.params[6],'INSTITUCION');assert.equal(accepted.params[7],true);
 });

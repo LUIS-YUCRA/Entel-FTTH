@@ -16,10 +16,13 @@ class User {
       );
       const user = result.rows[0];
       if (userType === 'cliente') {
+        const {serviceIdentity}=require('../services/ServiceIdentity');
+        const identity=await serviceIdentity.resolve(serviceNumber,client);
         await client.query(
-          'INSERT INTO customers (user_id, service_number) VALUES ($1,$2)',
-          [user.id, String(serviceNumber).trim()],
+          `INSERT INTO customers (user_id, service_number, customer_category, category_verified, category_source) VALUES ($1,$2,$3,$4,$5)`,
+          [user.id, String(serviceNumber).trim(),identity?.customer_category||'HOGAR',Boolean(identity),identity?.source||null],
         );
+        Object.assign(user,{service_number:String(serviceNumber).trim(),customer_category:identity?.customer_category||null,category_verified:Boolean(identity)});
       } else if (userType === 'tecnico') {
         await client.query(
           `INSERT INTO technician_profiles (user_id)
@@ -66,6 +69,7 @@ class User {
               (u.profile_photo IS NOT NULL) AS has_profile_photo,
               u.profile_photo_updated_at,
               c.ci, c.phone, c.address, c.service_number, c.zone, c.customer_category,
+              c.category_verified, c.category_source,
               tp.zone AS technician_zone, tp.specialty, tp.employee_code,
               tp.area, tp.phone AS technician_phone, tp.crew,
               tp.max_active_tickets, tp.is_available
@@ -78,7 +82,7 @@ class User {
     return result.rows[0];
   }
 
-  static async updateOwnProfile(id, data, userType) {
+  static async updateOwnProfile(id, data, userType, { allowCategoryChange = false } = {}) {
     const {
       fullName, email, ci, phone, address, serviceNumber, zone, customerCategory,
       specialty, maxActiveTickets, isAvailable,
@@ -101,17 +105,21 @@ class User {
              user_id, ci, phone, address, service_number, zone, customer_category
            ) VALUES ($1,$2,$3,$4,$5,$6,$7)
            ON CONFLICT (user_id) DO UPDATE SET
-             ci = EXCLUDED.ci,
-             phone = EXCLUDED.phone,
-             address = EXCLUDED.address,
+             ci = CASE WHEN $9::boolean THEN EXCLUDED.ci ELSE customers.ci END,
+             phone = CASE WHEN $10::boolean THEN EXCLUDED.phone ELSE customers.phone END,
+             address = CASE WHEN $11::boolean THEN EXCLUDED.address ELSE customers.address END,
              service_number = customers.service_number,
-             zone = EXCLUDED.zone,
-             customer_category = EXCLUDED.customer_category,
+             zone = CASE WHEN $12::boolean THEN EXCLUDED.zone ELSE customers.zone END,
+             customer_category = CASE WHEN $8::boolean THEN EXCLUDED.customer_category ELSE customers.customer_category END,
+             category_verified = CASE WHEN $8::boolean THEN FALSE ELSE customers.category_verified END,
+             category_source = CASE WHEN $8::boolean THEN NULL ELSE customers.category_source END,
              updated_at = CURRENT_TIMESTAMP`,
           [
             id, ci || null, phone || null, address || null, serviceNumber || null, zone || null,
-            ['HOGAR', 'NEGOCIO', 'INSTITUCION'].includes(String(customerCategory).toUpperCase())
+            allowCategoryChange && ['HOGAR', 'NEGOCIO', 'INSTITUCION'].includes(String(customerCategory).toUpperCase())
               ? String(customerCategory).toUpperCase() : 'HOGAR',
+            allowCategoryChange && customerCategory !== undefined,
+            ci !== undefined, phone !== undefined, address !== undefined, zone !== undefined,
           ],
         );
       } else if (userType === 'tecnico') {
@@ -197,7 +205,7 @@ class User {
     const result = await query(
       `SELECT u.id, u.full_name, u.email, u.user_type, u.is_active, u.last_login, u.created_at,
               (u.profile_photo IS NOT NULL) AS has_profile_photo,
-              c.ci, c.phone, c.address, c.service_number, c.zone AS customer_zone,
+              c.ci, c.phone, c.address, c.service_number, c.zone AS customer_zone, c.customer_category,
               tp.employee_code, tp.area, tp.phone AS technician_phone, tp.crew,
               tp.zone AS technician_zone, tp.specialty, tp.max_active_tickets, tp.is_available
        FROM users u

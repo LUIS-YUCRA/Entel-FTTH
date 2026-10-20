@@ -1,4 +1,5 @@
 const TYPES = [
+  { code: 'ELECTRICAL_STORM_DAMAGE', label: 'Posible daño eléctrico', terms: ['electrical_storm_damage', 'olor a quemado', 'sale humo', 'produce chispas'] },
   { code: 'SIN_INTERNET', label: 'Sin internet', terms: ['sin_internet', 'sin internet', 'no_internet', 'no tengo internet', 'internet caido'] },
   { code: 'INTERNET_LENTO', label: 'Internet lento', terms: ['internet_lento', 'slow_internet', 'internet lento', 'muy lento', 'lentitud', 'baja velocidad'] },
   { code: 'PROBLEMA_CONEXION', label: 'Problema de conexión', terms: ['problema_conexion', 'connection_problem', 'problema de conexion', 'intermitencia', 'se desconecta'] },

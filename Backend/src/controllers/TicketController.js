@@ -19,13 +19,24 @@ const STATUS_TRANSITIONS = {
 
 const create = async (req, res, next) => {
   try {
+    const customerId=req.user.user_type==='cliente'?req.user.id:req.body.customerId;
+    const {query}=require('../config/db');
+    const profile=(await query('SELECT address,zone,customer_category,category_verified FROM customers WHERE user_id=$1',[customerId])).rows[0]||{};
+    const {normalizeFailure}=require('../services/FailureCatalog');
+    const failure=normalizeFailure({originalMessage:req.body.description});
+    const {calculateTicketPriority}=require('../services/TicketPriorityService');
+    const priority=calculateTicketPriority({diagnosisCode:failure.code,text:String(req.body.description||''),customer:profile});
     const ticket = await Ticket.create({
-      customerId: req.user.user_type === 'cliente' ? req.user.id : req.body.customerId,
+      customerId,
       operatorId: req.user.user_type === 'operador' ? req.user.id : null,
-      technicianId: req.body.technicianId,
+      technicianId: req.user.user_type==='cliente'?null:req.body.technicianId,
       title: req.body.title,
       description: req.body.description,
-      priority: req.body.priority,
+      priority: req.user.user_type==='cliente'?priority.priority:(['ALTA','MEDIA','BAJA'].includes(req.body.priority)?req.body.priority:priority.priority),
+      diagnosisCode:failure.code,customerAddress:profile.address,customerZone:profile.zone,
+      customerCategory:profile.category_verified===true?profile.customer_category:null,
+      customerCategoryVerified:profile.category_verified===true,
+      priorityReason:priority.reason,reportedDurationHours:priority.durationHours,
     });
     res.status(201).json({ success: true, ticket });
   } catch (error) {

@@ -21,9 +21,10 @@ test('opening another chat preserves existing conversation states',async()=>{
 
 test('another login preserves existing sessions',async()=>{
  const calls=[];const user={id:1,user_type:'cliente',email:'test@example.com',is_active:true,password:'hash'};
- const controller=load('controllers/AuthController.js',{'../models/User':{findByEmail:async()=>user,verifyPassword:async()=>true,updateLastLogin:async()=>{}},'../utils/jwtHelper':{generateToken:()=> 'access',generateRefreshToken:()=> 'refresh'},'../config/db':{query:async(sql)=>{calls.push(sql);return {rows:[]};}}});
+ const controller=load('controllers/AuthController.js',{'../models/User':{findByEmail:async()=>user,findProfileById:async()=>({...user,service_number:'1234567',customer_category:'NEGOCIO',category_verified:true}),verifyPassword:async()=>true,updateLastLogin:async()=>{}},'../services/ServiceIdentity':{serviceIdentity:{refresh:async(id)=>{assert.equal(id,user.id);}}},'../utils/jwtHelper':{generateToken:()=> 'access',generateRefreshToken:()=> 'refresh'},'../config/db':{query:async(sql)=>{calls.push(sql);return {rows:[]};}}});
  const res=response();await controller.login({body:{email:user.email,password:'test'},ip:'test',get:()=>''},res,error=>{throw error;});
  assert.equal(res.code,200);assert.equal(res.body.success,true);assert.deepEqual(calls.filter(sql=>sql.startsWith('DELETE FROM sessions')),['DELETE FROM sessions WHERE expires_at <= NOW()']);
+ assert.equal(res.body.user.customer_category,'NEGOCIO');assert.equal(res.body.user.category_verified,true);assert.ok(!Object.hasOwn(res.body.user,'password'));
 });
 for(const role of ['cliente','tecnico','operador'])test(`refresh ignores inactivity for ${role}`,async()=>{
  const controller=load('controllers/AuthController.js',{'../models/User':{findById:async()=>({id:1,user_type:role,is_active:true})},'../utils/jwtHelper':{verifyRefreshToken:()=>({userId:1}),generateToken:()=> 'renewed'},'../config/db':{query:async(sql,params)=>{if(sql.includes('SELECT'))assert.equal(params[2],false);return {rows:[{id:3}]};}}});

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { authService } from '../../services/AuthService';
 import { sessionStore } from '../../services/SessionStore';
+import { useAuth } from '../../context/AuthContext';
 import Footer from '../../components/Footer/Footer';
 import Header from '../../components/Header/Header';
 import ProfilePhoto from '../../components/ProfilePhoto';
@@ -12,7 +13,9 @@ const EMPTY = {
 };
 
 const PerfilCliente = () => {
+  const { updateProfile }=useAuth();
   const [form, setForm] = useState(EMPTY);
+  const [categoryVerified,setCategoryVerified]=useState(false);
   const [initial, setInitial] = useState(EMPTY);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -22,6 +25,7 @@ const PerfilCliente = () => {
   useEffect(() => {
     authService.profile()
       .then(({ user }) => {
+        setCategoryVerified(user.category_verified===true);
         const profile = {
           fullName: user.full_name || '',
           email: user.email || '',
@@ -46,7 +50,9 @@ const PerfilCliente = () => {
     setError('');
     setMessage('');
     try {
-      const { user } = await authService.updateProfile(form);
+      const editable=Object.fromEntries(Object.entries(form).filter(([key])=>!['serviceNumber','customerCategory'].includes(key)));
+      const { user } = await updateProfile(editable);
+      setCategoryVerified(user.category_verified===true);
       const profile = {
         fullName: user.full_name || '', email: user.email || '',
         ci: user.ci || '', phone: user.phone || '',
@@ -92,7 +98,7 @@ const PerfilCliente = () => {
             <div className="input-group"><label>Teléfono</label><input value={form.phone} onChange={(e) => update('phone', e.target.value)} /></div>
             <div className="input-group"><label>Dirección</label><input value={form.address} onChange={(e) => update('address', e.target.value)} /></div>
             <div className="input-group"><label>Zona</label><input value={form.zone} onChange={(e) => update('zone', e.target.value)} /></div>
-            <div className="input-group"><label>Categoría del servicio</label><select value={form.customerCategory} onChange={(e) => update('customerCategory', e.target.value)}><option value="HOGAR">Hogar</option><option value="NEGOCIO">Negocio</option><option value="INSTITUCION">Institución</option></select></div>
+            <div className="input-group"><label>Categoría del servicio</label><input value={categoryVerified?({HOGAR:'Hogar',NEGOCIO:'Negocio',INSTITUCION:'Institución'}[form.customerCategory]||form.customerCategory):'Pendiente de verificación'} readOnly disabled /><small>Se obtiene del registro de tu instancia y no puede editarse.</small></div>
             <div className="input-group"><label>Número de instancia</label><input value={form.serviceNumber} disabled aria-describedby="instance-note" /><small id="instance-note">Identificador de tu cuenta</small></div>
           </div>
 

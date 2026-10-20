@@ -1,0 +1,57 @@
+{
+  "timestamp": "2026-10-13T18:05:28.650Z",
+  "synthetic": true,
+  "persistedTickets": 0,
+  "turns": [
+    {
+      "message": "Buenas tardes",
+      "response": "¡Buenas tardes! ¿En qué puedo ayudarte?",
+      "intent": "saludo",
+      "state": "START",
+      "latencyMs": 8177,
+      "nlp": "es_core_news_md"
+    },
+    {
+      "message": "Tengo una duda",
+      "response": "Claro, ¿cuál es tu duda?",
+      "intent": "duda_general",
+      "state": "START",
+      "latencyMs": 14,
+      "nlp": "es_core_news_md"
+    },
+    {
+      "message": "Tengo falla en mi internet q ago",
+      "response": "Claro, te ayudaré. ¿No tienes internet o la conexión está lenta?",
+      "intent": "problema_internet_general",
+      "state": "START",
+      "latencyMs": 75,
+      "nlp": "es_core_news_md"
+    },
+    {
+      "message": "No funciona nada",
+      "response": "¿Ves alguna luz roja en tu equipo de internet?",
+      "intent": "sin_internet",
+      "state": "GUIDED_DIAGNOSIS",
+      "latencyMs": 14,
+      "nlp": "es_core_news_md"
+    },
+    {
+      "message": "Si esta roja",
+      "response": "Sin tocar ni desconectar la fibra, ¿el cable presenta daños visibles o parece suelto?",
+      "intent": "sin_internet",
+      "state": "GUIDED_DIAGNOSIS",
+      "latencyMs": 258,
+      "nlp": "es_core_news_md"
+    },
+    {
+      "message": "El cable esta bien conectado",
+      "response": "La conexión sigue fallando y reportaste una luz roja. Hace falta una revisión técnica para confirmar la causa. ¿Deseas que registre un ticket?",
+      "intent": "sin_internet",
+      "state": "WAITING_TICKET_CONFIRMATION",
+      "latencyMs": 244,
+      "nlp": "es_core_news_md"
+    }
+  ],
+  "firstTurnMs": 8177,
+  "warmMeanMs": 121
+}

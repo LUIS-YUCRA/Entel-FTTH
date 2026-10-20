@@ -18,16 +18,12 @@ from rules import get_all_rules
 from solution_engine import solution_engine
 from ticket_service import ticket_service
 from response_generator import response_generator
-from knowledge_base import get_support_guide, detect_direct_intent
+from knowledge_base import get_support_guide, detect_direct_intent, scope_reply, conversational_reply, general_intent, normalize_text
 from guided_flows import GUIDED_FLOWS, find_guided_flow
-from guided_answers import answers_question, service_restored, fiber_broken, matches
+from guided_answers import answers_question, service_restored, fiber_broken, matches, ticket_decision, update_facts
+from customer_language import definition
+from datetime import datetime, timezone, timedelta
 
-
-def normalize_text(value):
-    return "".join(
-        character for character in unicodedata.normalize("NFD", value.lower().strip())
-        if unicodedata.category(character) != "Mn"
-    )
 
 
 class DialogManager:
@@ -40,12 +36,133 @@ class DialogManager:
         entities=None,
         customer=None
     ):
-        # Guardar cliente
+        context = memory.get_context()
+        conversation = context['conversation']
+        state = memory.get_dialog_state()
         if customer:
             memory.set_customer(customer)
-        # Actualizar memoria NLP
-        if intent is not None:
-            memory.update(intent, entities, message)
+        if state == 'WAITING_TICKET_CONFIRMATION' and ticket_decision(message) is not None:
+            memory.record_message(message)
+            return self.process_ticket_confirmation(message)
+        progress = context.get('guided_flow') or {}
+        incoming_name, incoming_flow = find_guided_flow(detect_direct_intent(message))
+        if incoming_flow and progress.get('name') and incoming_name != progress['name'] and not answers_question(progress['name'], progress.get('step', 0), message):
+            # Guardar el problema anterior sin reutilizar sus síntomas en otro.
+            context.setdefault('previous_issues', []).append({'problem': context.get('reported_problem'), 'facts': context.get('diagnostic_facts', {}), 'flow': progress.get('name')})
+            context['previous_issues'] = context['previous_issues'][-3:]
+            context['diagnostic_facts'] = {}
+            context['reported_problem'] = message
+            context['diagnostic_answers'] = []
+            context['diagnosis'] = None
+            context['solution'] = None
+        facts = update_facts(context, message)
+        text = normalize_text(message)
+        if re.search(r'chispas|(?:olor|huele|oliendo).*quemad|humo', text):
+            memory.record_message(message)
+            memory.set_diagnosis({'code':'ELECTRICAL_STORM_DAMAGE','problem':'Posible riesgo eléctrico','cause':'El cliente reporta señales de daño eléctrico.','ticket_required':True,'priority':'ALTA'})
+            memory.set_dialog_state('WAITING_TICKET_CONFIRMATION')
+            context['reported_problem'] = message
+            return self.guided_response('Mantén distancia del equipo y no intentes abrirlo ni volver a encenderlo. ¿Quieres registrar un reclamo para revisión técnica?')
+        if state == 'WAITING_TICKET_CONFIRMATION' and ticket_decision(message) is None and re.search(r'venir|viene|vendr|visita|alguien|necesario|hace falta', text) and not context.get('_ticket_lookup', {}).get('requested'):
+            memory.record_message(message)
+            return self.guided_response('Puede ser necesaria una visita técnica; soporte evaluará el problema y confirmará si hace falta. Registrar el reclamo permite solicitar esa revisión. ¿Quieres que registre el reclamo?')
+        if context.get('_ticket_lookup', {}).get('requested'):
+            lookup = context['_ticket_lookup']
+            memory.record_message(message)
+            ticket = lookup.get('ticket')
+            if not ticket:
+                return self.guided_response('No encontré ese ticket entre tus solicitudes. Puedes revisar el número en Mis tickets.')
+            answer = f"Tu reclamo {ticket['ticket_code']} figura como {ticket['status'].replace('_', ' ').lower()}."
+            if re.search(r'quien|asign|telefono|contacto|tecnico', text):
+                if ticket.get('technician_name'):
+                    answer += f" El técnico asignado es {ticket['technician_name']}."
+                    if ticket.get('technician_phone'):
+                        answer += f" Su teléfono de atención es {ticket['technician_phone']}."
+                else:
+                    answer += ' Todavía no figura un técnico asignado.'
+            scheduled = ticket.get('scheduled_at')
+            if scheduled:
+                try:
+                    instant = datetime.fromisoformat(str(scheduled).replace('Z', '+00:00'))
+                    if instant.tzinfo is not None:
+                        local = instant.astimezone(timezone(timedelta(hours=-4)))
+                        answer += f" La visita está programada para el {local:%d/%m/%Y} a las {local:%H:%M} (hora de Bolivia)."
+                except (ValueError, TypeError):
+                    pass
+            elif re.search(r'cuando|fecha|hora|vendr|visita', text):
+                answer += ' Todavía no hay una fecha de visita registrada.'
+            if re.search(r'cambiar|reprogram', text):
+                answer += ' Puedes solicitar la reprogramación desde Mis tickets; la nueva fecha requiere confirmación del equipo de atención.'
+            return self.guided_response(answer)
+        if re.search(r'mismo problema|problema de ayer|lo de ayer|otra vez lo mismo', text):
+            previous = (context.get('_private_history') or [None])[0]
+            memory.record_message(message)
+            if not previous:
+                return self.guided_response('No encuentro un diagnóstico anterior disponible en tu historial. ¿Qué ocurre ahora con tu conexión?')
+            conversation['previous_issue_pending'] = previous
+            label = {'internet_lento':'lentitud','sin_internet':'falta de internet','los_rojo':'una luz LOS roja'}.get(previous['intent'], 'una falla de conexión')
+            return self.guided_response(f'En tu consulta anterior reportaste {label}. ¿Es el mismo problema ahora?')
+        if conversation.get('previous_issue_pending'):
+            decision = ticket_decision(message)
+            if decision is False:
+                conversation.pop('previous_issue_pending', None)
+                memory.record_message(message)
+                return self.guided_response('Entendido. ¿Qué problema tienes ahora?')
+            if decision is True:
+                previous = conversation.pop('previous_issue_pending')
+                memory.update({'intent': 'sin_internet' if previous['intent'] == 'los_rojo' else previous['intent'], 'confidence': 0.9}, None, message)
+                memory.set_dialog_state('START')
+                return self.analyze_problem()
+        # Interrupciones sociales/informativas se registran sin consumir el paso pendiente.
+        reply = conversational_reply(message, conversation)
+        if reply:
+            if state == 'START':
+                context['intent'] = {'intent': general_intent(message), 'confidence': 0.95}
+            memory.record_message(message)
+            if general_intent(message) == 'despedida':
+                memory.finish()
+            return self.guided_response(reply)
+        reply = scope_reply(message, 'CLARIFYING' if conversation.get('pending_clarification') else state)
+        if reply:
+            memory.record_message(message)
+            return self.guided_response(reply)
+
+        text = normalize_text(message)
+        detected = detect_direct_intent(message)
+        guide = get_support_guide(detected)
+        if state != 'START' and guide and guide.get('flow') == 'message':
+            memory.record_message(message)
+            return self.guided_response(guide['message'])
+        if conversation.get('pending_clarification') == 'connectivity':
+            if re.fullmatch(r'no tengo(?: nada)?|no hay|ninguna|sin conexion|no funciona(?: nada| en absoluto)?', text):
+                detected = 'sin_internet'
+            elif re.fullmatch(r'(?:esta |muy |va )?lent[oa]', text):
+                detected = 'internet_lento'
+            elif re.fullmatch(r'se corta(?: a cada rato)?|a ratos|por momentos', text):
+                detected = 'cortes_internet'
+        if detected and not general_intent(message) and not (guide and guide.get('flow') == 'message'):
+            context.setdefault('reported_problem', message)
+        progress = context.get('guided_flow') or {}
+        pending_answer = state == 'GUIDED_DIAGNOSIS' and answers_question(progress.get('name'), progress.get('step', 0), message)
+        if detected in ('problema_internet_general', 'problema_wifi_general') and not pending_answer:
+            memory.update({'intent': detected, 'confidence': 0.95}, entities, message)
+            # Una descripción imprecisa durante el diagnóstico conserva la pregunta pendiente.
+            if state == 'GUIDED_DIAGNOSIS':
+                progress = context.get('guided_flow', {})
+                flow = GUIDED_FLOWS.get(progress.get('name'))
+                if flow:
+                    return self.guided_response(flow['messages'][progress.get('step', 0)])
+            conversation['pending_clarification'] = 'connectivity'
+            return self.guided_response('¿Tu WiFi se desconecta o está lento?' if detected == 'problema_wifi_general'
+                                        else 'Claro, te ayudaré. ¿No tienes internet o la conexión está lenta?')
+        if detected and conversation.pop('pending_clarification', None):
+            intent = {'intent': detected, 'confidence': 0.95}
+            memory.set_dialog_state('START')
+        if intent is None:
+            intent = {'intent': detected or memory.get_intent().get('intent', 'desconocido'), 'confidence': 0.95 if detected else 0}
+        if state != 'START' and isinstance(intent, dict) and (intent.get('intent') == 'desconocido' or pending_answer):
+            intent = memory.get_intent().copy()
+        memory.update(intent, entities, message)
         state = memory.get_dialog_state()
         if state == "GUIDED_DIAGNOSIS":
             return self.process_guided_diagnosis(message)
@@ -95,11 +212,33 @@ class DialogManager:
         context = memory.get_context()
         intent = context["intent"].get("intent", "desconocido")
         entities = context["entities"]
+        if intent == 'technical_definition':
+            return self.guided_response(definition(memory.get_history()[-1]['user']))
+        if intent == 'contracted_plan':
+            return self.guided_response('No tengo datos verificados de tu plan contratado en este sistema. Puedes consultarlo en tu contrato o en los canales oficiales de ENTEL.')
         flow_name, flow = find_guided_flow(intent)
         if flow:
             memory.get_context()["guided_flow"] = {"name": flow_name, "step": 0}
             memory.set_dialog_state("GUIDED_DIAGNOSIS")
-            return self.guided_response(flow["messages"][0])
+            if flow_name == 'fiber_cable_damage' and context.get('diagnostic_facts', {}).get('fiber_damage_visible'):
+                memory.set_diagnosis(dict(flow['diagnosis']))
+                memory.set_dialog_state('WAITING_TICKET_CONFIRMATION')
+                return self.guided_response('Lamento el daño que reportas; un cable cortado necesita reparación técnica. No lo manipules ni intentes unirlo. ¿Deseas que registre un ticket para solicitar la revisión?')
+            if intent in ('los_rojo', 'problema_pon'):
+                memory.get_context()['guided_flow']['step'] = 1
+                return self.guided_response('Esa luz puede indicar que la señal de internet no está llegando correctamente. ¿El cable tiene daños visibles, sin tocarlo?', 'outage:fiber_check' if intent == 'los_rojo' and context.get('diagnostic_facts', {}).get('los_status') == 'red' else None)
+            if flow_name == 'internet_lento' and context.get('diagnostic_facts', {}).get('device_scope') == 'single':
+                return self.ask_single_device_distance()
+            if flow_name == 'internet_lento' and context.get('diagnostic_facts', {}).get('device_scope') == 'all':
+                context['guided_flow']['step'] = 2 if context.get('diagnostic_facts', {}).get('connection_type') else 1
+                return self.guided_response(self.guided_message(flow_name, context['guided_flow']['step']))
+            if flow_name == 'single_device_issue' and context.get('diagnostic_facts', {}).get('device_scope') == 'single':
+                context['guided_flow']['step'] = 1
+                return self.guided_response(flow['messages'][1])
+            category = (context.get('customer') or {}).get('customer_category')
+            if flow_name == 'internet_lento' and category in ('INSTITUCION', 'NEGOCIO'):
+                return self.guided_response('¿La lentitud afecta a todos los dispositivos o solo a algunos?', 'slow:device_scope')
+            return self.guided_response(flow["messages"][0], "slow:device_scope" if flow_name == "internet_lento" else None)
         guide_result = self.process_support_guide(intent)
         if guide_result:
             return guide_result
@@ -202,15 +341,36 @@ class DialogManager:
         return {
             "action": {
                 "type": "ASK",
-                "message": "No pude identificar tu problema con claridad. ¿Puedes describir con más detalle lo que está pasando con tu servicio de internet?"
+                "message": "¿Puedes contarme un poco más sobre lo que ocurre?",
+                "reply_key": "info:general_support" if intent == 'desconocido' else None
             },
             "intent": memory.get_intent(),
             "entities": memory.get_entities()
         }
 
-    def guided_response(self, message):
+    def ask_single_device_distance(self):
+        if memory.get_context().get('diagnostic_facts', {}).get('connection_type') == 'cable':
+            memory.get_context()['guided_flow'] = {'name': 'ethernet_problem', 'step': 0}
+            return self.guided_response(GUIDED_FLOWS['ethernet_problem']['messages'][0])
+        memory.get_context()['guided_flow'] = {'name': 'internet_lento', 'step': 0, 'branch': 'single_distance'}
+        return self.guided_response('Gracias, revisemos ese dispositivo. ¿También está lento cuando estás cerca del equipo de internet?')
+
+    def guided_message(self, name, step):
+        facts = memory.get_context().get('diagnostic_facts', {})
+        if name == 'internet_lento' and step == 2 and facts.get('connection_type') in ('both', 'cable'):
+            return ('Gracias por comprobarlo; si también ocurre por cable, conviene revisar la conexión completa. '
+                    'Pausa por un momento las descargas o los videos que estén en uso y abre una página en el dispositivo conectado por cable. '
+                    '¿Sigue lento en esa prueba?')
+        return GUIDED_FLOWS[name]['messages'][step]
+
+    def guided_response(self, message, reply_key=None):
+        progress = memory.get_context().get('guided_flow')
+        if progress:
+            progress['last_question'] = message
+        if re.search(r'(desconecta|reinicia).*(router|modem|equipo|corriente)', normalize_text(message)):
+            memory.get_context().setdefault('diagnostic_facts', {})['router_restart_requested'] = True
         return {
-            "action": {"type": "ASK", "message": message},
+            "action": {"type": "ASK", "message": message, "reply_key": reply_key},
             "intent": memory.get_intent(),
             "entities": memory.get_entities()
         }
@@ -221,6 +381,58 @@ class DialogManager:
         if not flow:
             memory.set_dialog_state("START")
             return self.analyze_problem()
+
+        facts = memory.get_context().setdefault('diagnostic_facts', {})
+        text = normalize_text(message)
+        if service_restored(message):
+            memory.finish()
+            return self.guided_response('Me alegra que la conexión haya vuelto. No registraré un ticket.')
+        if progress.get('branch') == 'single_distance':
+            if re.fullmatch(r'no(?: cerca funciona bien)?|cerca funciona(?: bien)?|no cerca funciona bien', text) or facts.get('works_near_router'):
+                facts['works_near_router'] = True
+                memory.get_context()['guided_flow'] = {'name': 'wifi_weak', 'step': 1}
+                return self.guided_response('La distancia o las paredes pueden reducir la señal. ¿El equipo está dentro de un mueble o detrás de objetos grandes?')
+            if re.fullmatch(r'si(?: tambien)?|tambien|sigue igual', text):
+                memory.get_context()['guided_flow'] = {'name': 'single_device_issue', 'step': 1}
+                return self.guided_response(GUIDED_FLOWS['single_device_issue']['messages'][1])
+            return self.guided_response('Para comprobar el alcance, ¿también falla cuando estás al lado del equipo de internet?')
+        if progress.get('name') == 'internet_lento' and progress.get('step') == 0 and facts.get('device_scope') == 'single':
+            return self.ask_single_device_distance()
+        if progress.get('name') == 'streaming' and progress.get('step') == 0:
+            if re.search(r'^(?:si|si funcionan)|otras.*funcionan|solo|solamente', text) and not re.search(r'no funcionan|tambien fallan', text):
+                memory.get_context()['guided_flow'] = {'name': 'streaming', 'step': 0, 'branch': 'application_only'}
+                return self.guided_response('Parece limitado a esa aplicación. Ciérrala y vuelve a abrirla; ¿también falla en otro dispositivo?')
+        if progress.get('branch') == 'application_only':
+            if re.fullmatch(r'si|tambien falla|en todos|en ambos', text):
+                progress['branch'] = 'application_checked'
+                return self.guided_response('Si solo falla esa aplicación en varios dispositivos, puede ser un problema de ese servicio. ¿Las demás páginas siguen funcionando?')
+            if re.fullmatch(r'no|solo en este|en el otro funciona', text):
+                memory.get_context()['guided_flow'] = {'name': 'single_device_issue', 'step': 1}
+                return self.guided_response('Parece limitado a ese dispositivo. Cierra y vuelve a abrir la aplicación; ¿ahora funciona?')
+            return self.guided_response('Si las otras páginas funcionan, no parece una interrupción general. Prueba esa aplicación en otro dispositivo para comprobar si la falla sigue allí.')
+        if progress.get('name') == 'router_power' and progress.get('step') == 1 and re.fullmatch(r'no|no funciona|el enchufe no funciona', text):
+            return self.guided_response('Puede haber un problema en el enchufe. No intentes repararlo ni pruebes adaptadores distintos; solicita que una persona calificada revise la alimentación eléctrica.')
+        if progress.get('name') == 'sin_internet':
+            optical = facts.get('los_status') == 'red' or facts.get('pon_status') == 'off'
+            if (optical or facts.get('red_light')) and facts.get('fiber_checked'):
+                return self.offer_outage_ticket('La conexión sigue fallando y reportaste una luz roja. Hace falta una revisión técnica para confirmar la causa.')
+            if optical and int(progress.get('step', 0)) == 0:
+                progress['step'] = 1
+                facts.pop('light_names_pending', None)
+                return self.guided_response('Esa luz puede indicar un problema con la señal de internet. ¿Ves daños en el cable, sin tocarlo?', 'outage:fiber_check' if facts.get('los_status') == 'red' else None)
+            if int(progress.get('step', 0)) == 0 and re.search(r'varias luces|luces rojas', text):
+                facts['light_names_pending'] = True
+                return self.guided_response('¿Qué nombres tienen las luces rojas: LOS, PON o Internet?')
+            if facts.get('light_names_pending') and not optical:
+                if facts.get('router_restart_result') == 'failed':
+                    return self.offer_outage_ticket('El servicio sigue fallando después del reinicio; hace falta revisar el equipo y la señal.')
+                if not re.search(r'no se|no distingo|no puedo leer|internet|pon|los', text):
+                    return self.guided_response('Gracias por revisar. Falta identificar la luz: ¿puedes leer LOS, PON o Internet junto a ella?')
+                facts.pop('light_names_pending', None)
+            if int(progress.get('step', 0)) >= 1 and facts.get('fiber_checked') and facts.get('router_restart_result') == 'failed':
+                return self.offer_outage_ticket('Ya revisaste el cable y el reinicio no recuperó la conexión.')
+            if int(progress.get('step', 0)) == 2 and facts.get('router_restart_attempted') and not facts.get('router_restart_result'):
+                return self.guided_response('¿Volvió el internet después del reinicio o sigue sin funcionar?')
 
         if service_restored(message):
             memory.finish()
@@ -237,7 +449,8 @@ class DialogManager:
         new_flow_name, new_flow = find_guided_flow(direct_intent)
         switchable_flows = {
             "fiber_cable_damage", "wifi_weak", "router_restarts",
-            "router_power", "ethernet_problem", "streaming", "sin_internet"
+            "router_power", "ethernet_problem", "streaming", "sin_internet",
+            "internet_lento", "internet_intermittent", "single_device_issue"
         }
         if (
             new_flow and new_flow_name in switchable_flows
@@ -268,15 +481,55 @@ class DialogManager:
             return self.guided_response(new_flow["messages"][0])
 
         current_step = int(progress.get('step', 0))
+        simple_answer = re.fullmatch(r'(si|no)(?: (?:gracias|ahora|ya))?', text)
+        resolved_answer = {
+            ('wifi_weak', 2): 'si',
+            ('ethernet_problem', 2): 'si',
+            ('streaming', 2): 'no',
+            ('streaming', 3): 'no',
+        }.get((progress['name'], current_step))
+        if simple_answer and simple_answer.group(1) == resolved_answer:
+            facts['service_restored'] = True
+            memory.finish()
+            return self.guided_response('¡Me alegra que la prueba haya dado resultado! Si el problema vuelve, cuéntame qué sucede y te ayudaré a revisarlo.')
+        if re.search(r'no entiendo|no se como|como (?:lo )?hago|como pruebo', text):
+            explanations = {
+                ('internet_lento', 1): 'Con gusto te explico: WiFi es la conexión sin cables; por cable significa conectar la computadora directamente al equipo de internet. ¿Cuál estás usando?',
+                ('sin_internet', 0): 'Claro, solo mira las luces de la parte frontal del equipo, sin desconectar nada. ¿Alguna está roja?',
+                ('internet_lento', 2): ('Claro, basta con abrir una página que uses habitualmente y observar si tarda en cargar. '
+                                       'Prueba en el dispositivo conectado por cable.' if facts.get('connection_type') in ('both', 'cable') else
+                                       'Claro, lleva tu celular cerca del equipo de internet y abre una página que uses habitualmente.') +
+                                      (' ¿Sigue lento en esa prueba?' if facts.get('connection_type') in ('both', 'cable') else ' ¿La velocidad mejoró?'),
+            }
+            return self.guided_response(explanations.get((progress['name'], current_step), 'Con gusto te acompaño paso a paso. ' + self.guided_message(progress['name'], current_step)))
+        if progress['name'] == 'internet_lento' and current_step in (2, 3):
+            cable_test = current_step == 2 and facts.get('connection_type') in ('both', 'cable')
+            # El sí/no se interpreta según la pregunta realmente enviada.
+            resolved = (re.fullmatch(r'no(?: ya no)?|ya no(?: esta lento)?', text) if cable_test
+                        else re.fullmatch(r'si(?: mejoro| ahora cargan mejor)?|mejoro|ahora cargan mejor', text))
+            if resolved:
+                facts['service_restored'] = True
+                memory.finish()
+                return self.guided_response('¡Me alegra que la conexión haya mejorado! Si pausaste descargas, retómalas una por una para comprobar cuál afecta la velocidad. Si la lentitud vuelve, aquí estaré para ayudarte.')
         if not answers_question(progress['name'], current_step, message):
             return self.guided_response(
-                "Para continuar necesito aclarar este dato. " + flow['messages'][current_step]
+                ('Para seguir ayudándote, necesito aclarar cómo hiciste la prueba. ¿Fue por WiFi, por cable o por ambos?'
+                 if progress['name'] == 'internet_lento' and current_step == 1 else
+                 'Vamos paso a paso. ' + self.guided_message(progress['name'], current_step))
             )
         memory.get_context().setdefault('diagnostic_answers', []).append({
             'flow': progress['name'], 'step': current_step,
-            'question': flow['messages'][current_step], 'answer': message,
+            'question': progress.get('last_question', self.guided_message(progress['name'], current_step)), 'answer': message,
         })
         next_step = int(progress.get("step", 0)) + 1
+        if progress.get('name') == 'internet_lento' and next_step == 1 and facts.get('connection_type'):
+            next_step = 2
+        if progress.get('name') == 'internet_lento' and next_step == 3 and facts.get('router_restart_result') == 'failed':
+            next_step = 4
+        if progress.get('name') == 'sin_internet' and next_step == 1 and facts.get('fiber_checked'):
+            next_step = 2
+        if progress.get('name') == 'sin_internet' and next_step == 2 and facts.get('router_restart_result') == 'failed':
+            return self.offer_outage_ticket('El reinicio que ya realizaste no recuperó el servicio.')
         progress["step"] = next_step
         messages = flow["messages"]
         if next_step >= len(messages):
@@ -316,7 +569,17 @@ class DialogManager:
         if is_last:
             memory.set_diagnosis(dict(flow["diagnosis"]))
             memory.set_dialog_state("WAITING_TICKET_CONFIRMATION")
-        return self.guided_response(messages[next_step])
+        return self.guided_response(self.guided_message(progress['name'], next_step))
+    def offer_outage_ticket(self, reason):
+        facts = memory.get_context().setdefault('diagnostic_facts', {})
+        diagnosis = dict(GUIDED_FLOWS['sin_internet']['diagnosis'])
+        if facts.get('los_status') == 'red' or facts.get('pon_status') == 'off':
+            diagnosis.update(code='PERDIDA_SENAL_OPTICA', cause='Posible pérdida de señal óptica según los indicadores reportados.')
+        memory.set_diagnosis(diagnosis)
+        memory.set_dialog_state('WAITING_TICKET_CONFIRMATION')
+        facts['ticket_offered'] = True
+        return self.guided_response(f'{reason} ¿Deseas que registre un ticket?')
+
     def process_support_guide(self, intent):
         """Convierte una entrada de la base de conocimiento en una acción."""
         guide = get_support_guide(intent)
@@ -326,7 +589,7 @@ class DialogManager:
         flow = guide.get("flow")
         if flow == "message":
             return {
-                "action": {"type": "MESSAGE", "message": guide["message"]},
+                "action": {"type": "MESSAGE", "message": guide["message"], "reply_key": f"info:{intent}"},
                 "intent": memory.get_intent(),
                 "entities": memory.get_entities()
             }
@@ -792,8 +1055,8 @@ class DialogManager:
         # Pedir que revisen el servicio ya expresa una solicitud inequívoca de
         # atención técnica, aunque el cliente no use una respuesta formal.
         if requests_technical_review:
-            memory.set_dialog_state("CREATING_TICKET")
-            return self.create_ticket()
+            memory.set_dialog_state("WAITING_TICKET_CONFIRMATION")
+            return self.guided_response("¿Confirmas que deseas registrar un ticket para revisión técnica?")
         if memory.get_intent().get("intent") == "hablar_operador":
             memory.set_dialog_state("WAITING_TICKET_CONFIRMATION")
             return {
@@ -807,7 +1070,14 @@ class DialogManager:
 
         # Una negación siempre tiene prioridad en respuestas mixtas como
         # "sí, lo hice, pero sigue sin funcionar".
-        if any(word in text for word in negative):
+        if any(re.search(r"\b" + re.escape(word) + r"\b", text) for word in negative):
+            solution = memory.get_solution() or {}
+            steps = solution.get('steps') or []
+            conversation = memory.get_context()['conversation']
+            next_step = conversation.get('solution_step', 0) + 1
+            if next_step < len(steps):
+                conversation['solution_step'] = next_step
+                return self.guided_response(f"{steps[next_step]} ¿El problema se solucionó?")
             memory.set_dialog_state("WAITING_TICKET_CONFIRMATION")
             return {
                 "action": {
@@ -817,7 +1087,7 @@ class DialogManager:
                 "intent": memory.get_intent(),
                 "entities": memory.get_entities()
             }
-        if any(word in text for word in positive):
+        if any(re.search(r"\b" + re.escape(word) + r"\b", text) for word in positive):
             memory.finish()
             return {
                 "action": {
@@ -839,6 +1109,15 @@ class DialogManager:
     # Confirmación de ticket
     # =====================================================
     def process_ticket_confirmation(self, message):
+        decision = ticket_decision(message)
+        if decision is False:
+            memory.get_context().setdefault('diagnostic_facts', {})['ticket_confirmed'] = False
+            memory.finish()
+            return self.guided_response('Entendido, no registraré ningún ticket. Si necesitas ayuda más adelante, aquí estaré.')
+        if decision is True:
+            memory.get_context().setdefault('diagnostic_facts', {})['ticket_confirmed'] = True
+            memory.set_dialog_state('CREATING_TICKET')
+            return self.create_ticket()
         text = normalize_text(message)
         if matches(message, r'imagen|foto|video') and not matches(message, r'\bsi\b|genera|registre|registra|crea el ticket'):
             return self.guided_response("Puedes adjuntar la evidencia con el botón de archivos; el sistema confirmará cuando esté guardada. ¿Deseas también que registre el ticket técnico?")
@@ -864,27 +1143,17 @@ class DialogManager:
                 "intent": memory.get_intent(),
                 "entities": memory.get_entities()
             }
-        affirmative_phrases = [
-            "por favor", "quiero", "genera", "generar", "genere",
-            "registra", "registrar", "registre", "crea", "crear", "cree",
-            "dale", "continua", "adelante", "de acuerdo", "que venga",
-            "que vengan", "solucionar mi servicio", "necesito un tecnico",
-            "registre el ticket", "genera el ticket"
-        ]
-        affirmative_words = {"si", "ok", "correcto", "acepto", "claro"}
-        has_affirmative_word = any(
-            re.search(rf"\b{re.escape(word)}\b", text)
-            for word in affirmative_words
-        )
-        if has_affirmative_word or any(
-            phrase in text for phrase in affirmative_phrases
-        ):
+        # Consentimiento inequívoco; «quiero saber» o «si cuesta...» no lo son.
+        accepted = re.fullmatch(
+            r'(si|ok|correcto|acepto|claro|dale|adelante|de acuerdo)( por favor)?|'
+            r'(si )?(quiero |deseo |por favor )?(generar|genera|genere|registrar|registra|registre|crear|crea|cree) (el |un )?(ticket|reclamo)( tecnico)?( por favor)?', text)
+        if accepted:
             memory.set_dialog_state("CREATING_TICKET")
             return self.create_ticket()
         return {
             "action": {
                 "type": "ASK",
-                "message": "No entendí tu respuesta. ¿Deseas generar un ticket técnico? Responde SI o NO."
+                "message": "Puedo registrar la falla para revisión técnica. ¿Quieres que cree el ticket?"
             },
             "intent": memory.get_intent(),
             "entities": memory.get_entities()
@@ -932,7 +1201,7 @@ class DialogManager:
                 "action": {
                     "type": "TICKET",
                     "ticket": ticket,
-                    "message": f"🎫 ¡TICKET GENERADO CORRECTAMENTE!\n\n📋 Número de ticket: {ticket['ticket_id']}\n\n📌 Estado: PENDIENTE\n\n👨‍🔧 Un técnico revisará su servicio FTTH en las próximas horas.\n\n📱 Recibirá notificaciones sobre el estado de su reclamo.\n\n¡Gracias por confiar en ENTEL!"
+                    "message": "Prepararé la solicitud; el sistema confirmará el número cuando quede registrada."
                 },
                 "intent": memory.get_intent(),
                 "entities": memory.get_entities()

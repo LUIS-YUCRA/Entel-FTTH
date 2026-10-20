@@ -97,6 +97,8 @@ const RegisterForm = () => {
       newErrors.email = 'El correo electrónico es requerido';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
       newErrors.email = 'Correo electrónico inválido';
+    } else if (/(^|\.)entel\.bo$/i.test(formData.email.trim().split('@')[1] || '')) {
+      newErrors.email = 'Los correos @entel.bo son exclusivos del personal registrado por el administrador. Usa tu correo personal o institucional.';
     }
 
     if (!formData.password) {

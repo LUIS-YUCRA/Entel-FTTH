@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   FaArrowUp, FaBars, FaCheckCircle, FaComments, FaHeadset, FaImage,
   FaPaperclip, FaPlug, FaRegFileAlt, FaTachometerAlt,
-  FaTicketAlt, FaVideo, FaWifi, FaPlus, FaEllipsisH, FaTrash,
+  FaTicketAlt, FaVideo, FaWifi, FaPlus, FaEllipsisH, FaTrash, FaRobot, FaTimes,
 } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 import { chatService } from '../../services/ChatService';
@@ -11,6 +11,8 @@ import Footer from '../../components/Footer/Footer';
 import Header from '../../components/Header/Header';
 import './Dashboard.css';
 import DateRangeFilter from '../../components/DateRangeFilter';
+import AssistantMessage from '../../components/AssistantMessage';
+import ProfileCompletionCard from '../../components/ProfileCompletionCard';
 
 const ClienteDashboard = () => {
   const { user } = useAuth();
@@ -18,10 +20,33 @@ const ClienteDashboard = () => {
   const [summaryError, setSummaryError] = useState('');
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [mobileChatOpen, setMobileChatOpen] = useState(false);
+  const assistantLauncherRef = useRef(null);
+  const messageInputRef = useRef(null);
+  const assistantCloseRef = useRef(null);
+  const closeMobileChat = () => {
+    setMobileChatOpen(false);
+    assistantLauncherRef.current?.focus();
+  };
+  useEffect(() => {
+    if (!mobileChatOpen) return;
+    const mobile = window.matchMedia('(max-width: 760px)');
+    if (mobile.matches) assistantCloseRef.current?.focus();
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape' && mobile.matches) {
+        setMobileChatOpen(false);
+        assistantLauncherRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [mobileChatOpen]);
   const [files, setFiles] = useState([]);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const [overview, setOverview] = useState(null);
@@ -30,6 +55,15 @@ const ClienteDashboard = () => {
   const [historyOpen, setHistoryOpen] = useState(() => !window.matchMedia('(max-width: 760px)').matches);
   const [conversationMenu, setConversationMenu] = useState(null);
   const historyToggleRef = useRef(null);
+  const pendingTurn = useRef(null);
+  const welcomeLoad = useRef(null);
+  const sendLock = useRef(false);
+  const conversationRevision = useRef(0);
+  const messagesEnd = useRef(null);
+  const followMessages = useRef(true);
+  useEffect(() => {
+    if(followMessages.current)messagesEnd.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [messages, sending]);
   const closeHistory = () => { setHistoryOpen(false); historyToggleRef.current?.focus(); };
 
   useEffect(() => {
@@ -52,11 +86,13 @@ const ClienteDashboard = () => {
     return first ? `${first.slice(0, 42)}${first.length > 42 ? '…' : ''}` : 'Nueva conversación';
   };
 
-  const selectConversation = (conversation) => {
+  const selectConversation = (conversation, preserveDraft = false) => {
+    conversationRevision.current += 1;
+    followMessages.current = true;
     setCurrentConversation(conversation);
     setMessages(conversation.messages || []);
     setFiles([]);
-    setMessage('');
+    if (!preserveDraft) setMessage('');
     setShowMenu(false);
     setError('');
   };
@@ -66,14 +102,14 @@ const ClienteDashboard = () => {
     setConversations(stored);
     const preferred = stored.find((item) => Number(item.id) === Number(preferredId))
       || stored.find((item) => item.status === 'ACTIVA') || stored[0];
-    if (preferred) selectConversation(preferred);
+    if (preferred) selectConversation(preferred, true);
     return preferred;
   };
 
   const startNewConversation = async (parentConversationId = null) => {
     if (sending) return null;
     const { conversation } = await chatService.create(parentConversationId);
-    const empty = { ...conversation, messages: [] };
+    const empty = { ...conversation, messages: conversation.messages || [] };
     setConversations((current) => [empty, ...current]);
     selectConversation(empty);
     return empty;
@@ -100,13 +136,25 @@ const ClienteDashboard = () => {
   };
 
   useEffect(() => {
+    let active = true;
+    const revision = conversationRevision.current;
     chatService.list()
-      .then(({ conversations: stored }) => {
+      .then(async ({ conversations: stored }) => {
+        if(!active || revision!==conversationRevision.current || sendLock.current)return;
         setConversations(stored);
-        const current = stored.find((item) => item.status === 'ACTIVA') || stored[0];
-        if (current) selectConversation(current);
+        const current = stored.find((item) => item.status === 'ACTIVA');
+        if (current?.messages?.length) selectConversation(current, true);
+        else {
+          welcomeLoad.current ||= chatService.create();
+          const { conversation } = await welcomeLoad.current;
+          if (!active || revision!==conversationRevision.current || sendLock.current) return;
+          setConversations(previous=>[conversation,...previous.filter(item=>item.id!==conversation.id)]);
+          selectConversation(conversation,true);
+        }
       })
-      .catch((loadError) => setError(loadError.message));
+      .catch((loadError) => {if(active && revision===conversationRevision.current)setError(loadError.message);})
+      .finally(()=>{if(active)setCreating(false);});
+    return () => {active=false;};
   }, []);
 
   useEffect(() => {
@@ -119,6 +167,12 @@ const ClienteDashboard = () => {
   }, [range, conversations]);
 
   const closed = Boolean(currentConversation && (currentConversation.status !== 'ACTIVA' || currentConversation.ticket_id));
+  useEffect(() => {
+    if (sending || creating || closed) return;
+    if (window.matchMedia('(max-width: 760px)').matches && !mobileChatOpen) return;
+    messageInputRef.current?.focus({ preventScroll: true });
+  }, [sending, creating, closed, mobileChatOpen]);
+
   const openNewChat = async () => {
     if (sending || creating) return;
     setCreating(true);
@@ -128,7 +182,10 @@ const ClienteDashboard = () => {
 
   const sendMessage = async (text = message) => {
     const cleanMessage = text.trim();
-    if (!cleanMessage || sending || creating || closed) return;
+    if (!cleanMessage || sendLock.current || sending || creating || closed) return;
+    sendLock.current = true;
+    conversationRevision.current += 1;
+    followMessages.current = true;
 
     setSending(true);
     setError('');
@@ -137,11 +194,17 @@ const ClienteDashboard = () => {
     let target = currentConversation;
     try {
       if (!target) target = await startNewConversation();
-      setMessages((current) => [
-        ...current,
-        { id: `local-${Date.now()}`, sender: 'usuario', content: cleanMessage },
+      if (pendingTurn.current?.message !== cleanMessage || pendingTurn.current?.conversationId !== target.id) {
+        const bytes = crypto.getRandomValues(new Uint8Array(16)); bytes[6]=(bytes[6]&15)|64; bytes[8]=(bytes[8]&63)|128;
+        const hex=Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
+        pendingTurn.current={message:cleanMessage,conversationId:target.id,id:`${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`};
+      }
+      const localId=`local-${pendingTurn.current.id}`;
+      setMessages((current) => current.some(item=>item.id===localId)?current:[
+        ...current, {id:localId,sender:'usuario',content:cleanMessage},
       ]);
-      const response = await chatService.send(cleanMessage, target.id);
+      const response = await chatService.send(cleanMessage, target.id, pendingTurn.current.id);
+      pendingTurn.current=null;
       const conversationFinished = response.dialogState === 'FINISHED' || Boolean(response.ticket);
       setCurrentConversation((current) => ({
         ...(current || target), id: response.conversationId,
@@ -150,13 +213,14 @@ const ClienteDashboard = () => {
       setMessages((current) => [
         ...current,
         {
-          id: `assistant-${Date.now()}`,
+          id: response.messageId || `assistant-${Date.now()}`,
           sender: 'asistente',
           content: response.response,
-          metadata: { ticketId: response.ticket?.id || null },
+          metadata: { ticketId: response.ticket?.id || null,profileRequest:response.profileRequest||null },
         },
       ]);
 
+      setSending(false);
       if (files.length) {
         try { await Promise.all(
           files.map((file) => chatService.uploadEvidence(
@@ -180,7 +244,7 @@ const ClienteDashboard = () => {
         const previousId = messages.filter((item) => item.sender === 'asistente').at(-1)?.id;
         const last = saved?.messages?.at(-1);
         if (last?.sender === 'asistente' && last.id !== previousId && saved.messages.length > messages.length) {
-          setConversations(stored); selectConversation(saved); return;
+          pendingTurn.current=null;setConversations(stored); selectConversation(saved); return;
         }
       } catch { /* Keep the draft available when the connection is unavailable. */ }
       setMessage(cleanMessage);
@@ -188,6 +252,7 @@ const ClienteDashboard = () => {
         ? error.message
         : 'No recibimos la respuesta del asistente. Comprueba tu conexión y consulta este chat antes de reenviar el mensaje.');
     } finally {
+      sendLock.current = false;
       setSending(false);
     }
   };
@@ -226,7 +291,10 @@ const ClienteDashboard = () => {
           <article><FaPaperclip /><div><strong>{overview?.evidences.total ?? '—'}</strong><span>Evidencias enviadas</span></div></article>
         </section>
 
-        <section className="client-assistant-layout">
+        <button type="button" ref={assistantLauncherRef} className="mobile-assistant-launcher" aria-label="Abrir chat del asistente inteligente" aria-controls="client-assistant-chat" aria-expanded={mobileChatOpen} onClick={() => setMobileChatOpen(true)}>
+          <FaRobot aria-hidden="true" />
+        </button>
+        <section id="client-assistant-chat" className={`client-assistant-layout${mobileChatOpen ? ' mobile-chat-open' : ''}`} aria-label="Chat del asistente inteligente">
           <div className={`assistant-card ${historyOpen ? 'history-open' : ''}`}>
             <div className="assistant-chat-layout">
               {historyOpen && <button type="button" className="mobile-history-backdrop" onClick={closeHistory} aria-label="Cerrar panel de conversaciones" />}
@@ -260,10 +328,14 @@ const ClienteDashboard = () => {
                 </div>
               </div>
               <div className="secure-label">Sesión segura</div>
+              <button type="button" ref={assistantCloseRef} className="mobile-assistant-close" aria-label="Cerrar chat del asistente" onClick={closeMobileChat}><FaTimes /></button>
             </div>
 
             <div className="assistant-box">
-              <div className="conversation-panel" aria-live="polite">
+              <div className="conversation-panel" aria-live="polite" onScroll={(event) => {
+                const panel=event.currentTarget;
+                followMessages.current=panel.scrollHeight-panel.scrollTop-panel.clientHeight<64;
+              }}>
                 {messages.length === 0 && (
                   <div className="assistant-empty">
                     <FaHeadset />
@@ -297,18 +369,21 @@ const ClienteDashboard = () => {
                 {messages.map((item) => (
                   <div key={item.id} className={`chat-message ${item.sender}`}>
                     <span>{item.sender === 'asistente' ? 'Asistente FTTH' : 'Tú'}</span>
-                    <p>{item.content}</p>
+                    {item.sender === 'asistente' ? <AssistantMessage content={item.content} /> : <p>{item.content}</p>}
+                    {item.sender==='asistente'&&item.id===messages.at(-1)?.id&&item.metadata?.profileRequest&&!String(user?.[item.metadata.profileRequest]||'').trim()&&!closed&&<ProfileCompletionCard field={item.metadata.profileRequest} disabled={sending} onSaved={field=>sendMessage('Ya completé mi '+({phone:'teléfono',address:'domicilio',zone:'zona',ci:'CI'}[field])+' en el perfil.')} />}
+
                   </div>
                 ))}
                 {sending && (
-                  <div className="chat-message asistente">
+                  <div className="chat-message asistente" role="status" aria-live="polite">
                     <span>Asistente FTTH</span>
-                    <p>Analizando tu servicio...</p>
+                    <p>Estoy revisando tu consulta...</p>
                   </div>
                 )}
+                <div ref={messagesEnd} />
               </div>
 
-              {error && <div className="chat-error">{error}</div>}
+              {error && <div className="chat-error" role="alert">{error}</div>}
 
               {files.length > 0 && (
                 <div className="file-list">
@@ -340,12 +415,16 @@ const ClienteDashboard = () => {
                 </div>
                 <input
                   type="text"
+                  ref={messageInputRef}
+                  aria-label="Describe el problema de tu internet"
+                  readOnly={sending}
+                  aria-busy={sending}
                   value={message}
                   onChange={(event) => setMessage(event.target.value)}
                   onKeyDown={handleKeyDown}
                   maxLength={2000}
                   placeholder={closed ? "" : "Escribe aquí lo que sucede con tu internet..."}
-                  disabled={sending || creating || closed}
+                  disabled={creating || closed}
                 />
                 <button
                   type="button"

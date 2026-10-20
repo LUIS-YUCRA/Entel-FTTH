@@ -2,22 +2,181 @@
 
 from copy import deepcopy
 import unicodedata
+import re
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+from config import Config
+
+
+def greeting(message, now=None):
+    text = normalize_text(message)
+    for explicit in ('buenos dias', 'buen dia', 'buenas tardes', 'buenas noches'):
+        if explicit in text:
+            label = {'buenos dias': 'Buenos días', 'buen dia': 'Buenos días',
+                     'buenas tardes': 'Buenas tardes', 'buenas noches': 'Buenas noches'}[explicit]
+            return f'¡{label}! ¿En qué puedo ayudarte?'
+    try:
+        zone = ZoneInfo('America/La_Paz')
+    except ZoneInfoNotFoundError:
+        # Windows sin base IANA: Bolivia usa UTC-4, sin horario estacional.
+        zone = timezone(timedelta(hours=-4), 'America/La_Paz')
+    instant = now or datetime.now(timezone.utc)
+    if instant.tzinfo is None:
+        raise ValueError('El reloj de prueba debe incluir zona horaria')
+    hour = instant.astimezone(zone).hour
+    morning, afternoon, night = (Config.GREETING_MORNING_HOUR,
+                                Config.GREETING_AFTERNOON_HOUR, Config.GREETING_NIGHT_HOUR)
+    if not 0 <= morning < afternoon < night <= 23:
+        morning, afternoon, night = 5, 12, 19
+    label = ('Buenos días' if morning <= hour < afternoon else
+             'Buenas tardes' if afternoon <= hour < night else 'Buenas noches')
+    return f'¡{label}! ¿En qué puedo ayudarte?'
+
+
+# Sólo mensajes completos: un saludo delante de una falla no oculta la falla.
+GENERAL_PATTERNS = (
+    ('saludo', r'(?:hola+|ola|hey|saludos|buenas|que tal|como estas?|buenos dias|buen dia|buenas tardes|buenas noches)(?: (?:buenos dias|buenas tardes|buenas noches|que tal|como estas?))?'),
+    ('duda_general', r'(?:tengo|tenia) (?:una |unas )?(?:duda|dudas|pregunta|preguntas)|(?:quiero|quisiera|puedo) (?:consultar|preguntar)(?: algo| una cosa)?'),
+    ('solicitud_ayuda', r'(?:me )?(?:puedes|puede|podrias) ayudar(?:me)? con (?:mi |el )?(?:problema de (?:mi |el )?)?(?:servicio|conexion|internet)|me ayudas con (?:mi |el )?(?:servicio|conexion|internet)|(?:necesito|quiero|preciso) (?:tu |su )?ayuda|(?:me )?(?:puedes|podrias|puede) ayudar(?:me)?|ayuda(?:me)?(?: por favor)?|no se que hacer'),
+    ('problema_general', r'(?:tengo|tenemos|hay) (?:un |una |unos |unas )?(?:problema|problemas|falla|fallas|inconveniente)(?: por favor)?'),
+    ('agradecimiento', r'(?:muchas )?gracias(?: por (?:tu |la )?ayuda)?|te agradezco'),
+    ('despedida', r'adios|hasta luego|hasta pronto|nos vemos|chau|chao'),
+)
+
+
+def general_intent(message):
+    text = normalize_text(message)
+    for intent, pattern in GENERAL_PATTERNS:
+        if re.fullmatch(pattern, text):
+            return intent
+    return None
+
+
+def conversational_reply(message, conversation):
+    intent = general_intent(message)
+    if intent == 'saludo':
+        if re.search(r'como esta', normalize_text(message)):
+            first = not conversation.get('greeted')
+            conversation['greeted'] = True
+            if first and re.search(r'buenos dias|buenas tardes|buenas noches', normalize_text(message)):
+                return greeting(message).split(' ¿')[0] + ' Muy bien, gracias. ¿En qué puedo ayudarte?'
+            return '¡Muy bien, gracias! ¿En qué puedo ayudarte?'
+        if conversation.get('greeted'):
+            return 'Dime, ¿en qué puedo ayudarte?'
+        conversation['greeted'] = True
+        return greeting(message)
+    if intent == 'duda_general':
+        text = normalize_text(message)
+        return ('Dime, ¿qué necesitas saber?' if 'pregunt' in text else
+                'Claro, ¿qué deseas consultar?' if 'consult' in text else 'Claro, ¿cuál es tu duda?')
+    if intent == 'solicitud_ayuda' and re.search(r'servicio|conexion|internet', normalize_text(message)):
+        return 'Por supuesto. Cuéntame qué sucede con tu conexión.'
+    return {
+        'problema_general': 'Cuéntame, ¿qué problema tienes?',
+        'solicitud_ayuda': 'Claro, ¿en qué necesitas ayuda?',
+        'agradecimiento': '¡Con gusto! ¿Necesitas algo más?',
+        'despedida': '¡Hasta luego! Que te vaya bien.',
+    }.get(intent)
+
+
+
+def scope_reply(message, state="START"):
+    """Responde consultas de alcance/portal sin consumir una respuesta técnica."""
+    text = normalize_text(message).strip(' .,:;!¿?¡')
+    direct = detect_direct_intent(text)
+    if direct and direct not in ('consulta_general', 'saludo', 'agradecimiento', 'despedida'):
+        return None
+    if state == 'WAITING_TICKET_CONFIRMATION' and re.fullmatch(
+        r'(si|no)( quiero| deseo)?( generar| registrar| genere| registre| crear)?( el| un)? ticket', text
+    ):
+        return None
+    network = bool(re.search(
+        r'\b(internet|internte|wifi|wi fi|wi-fi|wiffi|conexion|conectividad|fibra|ftth|'
+        r'router|modem|ont|ethernet|lan|utp|ssid|ping|latencia|megas|mbps|'
+        r'cable|cables|luz|luces|pon|los rojo|red|redes|senal|navegar|'
+        r'videollamada|streaming|netflix|youtube)\b', text))
+    portal = bool(re.search(r'\b(sistema|sistem|portal|plataforma|pagina web|cuenta|login|sesion|registrarme|registro|notificaciones|correo|ticket|tickets|reclamo)\b', text))
+
+    if not network and re.search(r'\b(impresora|imprimir|tinta|toner|escane[ao]r)\b', text):
+        return '¿La impresora no se conecta al WiFi o tiene otro problema? Solo puedo orientarte con la conexión a internet.'
+
+    if not network and re.search(r'\b(contrasena|clave|password)\b', text):
+        if portal or re.search(r'recuper|restablec|olvide|correo|gmail', text):
+            return ('Para recuperar el acceso al sistema, abre Iniciar sesión, escribe el correo registrado '
+                    'y pulsa «¿Olvidaste tu contraseña?» y «Enviar instrucciones». Revisa tu bandeja y Spam. '
+                    'El enlace dura 15 minutos. No compartas aquí tu contraseña ni el enlace. '
+                    'Si falla, dime el mensaje de error, sin datos secretos.')
+        return '¿Te refieres a la contraseña de tu cuenta del sistema web o a la clave del WiFi de ENTEL?'
+    if not network and portal:
+        if re.search(r'notificacion|correo.*(llega|recib)|no.*(llega|recib).*correo', text):
+            return ('Consulta la sección Notificaciones y revisa el correo registrado en tu perfil, '
+                    'incluida la carpeta Spam. Que el aviso aparezca en la plataforma no garantiza que '
+                    'el correo se haya entregado. ¿No aparece el aviso en el sistema o solo falta el correo?')
+        if re.search(r'registr|crear.*cuenta|abrir.*cuenta', text):
+            return ('En la pantalla de acceso pulsa «Crear cuenta». Completa tu nombre, número de instancia, '
+                    'correo y contraseña según las indicaciones del formulario. Como cliente puedes usar '
+                    'tu correo personal o institucional. Si aparece un error, copia el mensaje sin tu contraseña.')
+        if re.search(r'entrar|ingresar|sesion|login|acceso', text):
+            return ('Para ingresar utiliza el correo de tu cuenta registrada y tu contraseña. '
+                    'Si no la recuerdas, usa «¿Olvidaste tu contraseña?». '
+                    '¿Qué mensaje aparece al intentar iniciar sesión? No compartas tu contraseña.')
+        if re.search(r'ticket|reclamo', text):
+            return ('En «Mis tickets» puedes consultar el estado y los detalles de tus solicitudes. '
+                    'No puedo confirmar desde este mensaje una fecha de visita ni un estado en tiempo real. '
+                    '¿Quieres saber cómo consultar un ticket o reportar una falla de internet?')
+        return ('Puedo orientarte sobre el sistema web de soporte de ENTEL. '
+                '¿Te refieres a iniciar sesión, crear una cuenta, recuperar contraseña, '
+                'consultar tickets o notificaciones? Indica qué intentas hacer y el error que aparece.')
+
+    if network or general_intent(text):
+        return None
+    # Frases completas conocidas; no aceptar coincidencias parciales como «no» en «no puedon».
+    if any(text == normalize_text(example).strip(' .,:;!¿?¡')
+           for examples in KNOWLEDGE_INTENT_EXAMPLES.values() for example in examples):
+        return None
+    if re.fullmatch(r'(hola[ ,]*)?(buenos dias|buenas tardes|buenas noches)|hola|gracias|muchas gracias|adios|hasta luego', text):
+        return None
+    if re.search(r'\b(entel|factura|facturacion|plan|planes|tarifa|cobertura|instalacion|recarga|saldo|datos moviles)\b', text):
+        return None
+    if state != 'START':
+        if re.fullmatch(r'(si|no|ok|listo|ya|bien|igual|correcto|no se|no entiendo|todavia no|aun no|lo hice|ya lo hice|ya probe|sigue igual|funciona|no funciona|no conecta|todos|uno|solo uno|solamente uno|ayer|hoy|desde ayer|desde hoy|por la noche|por la manana|todo el dia|cada rato|roja|rojo|verde|apagado|encendido)[ .!]*', text):
+            return None
+        if re.fullmatch(r'(desde |hace |cada )?\d+\s*(minutos?|horas?|dias?|semanas?|meses?)( atras)?', text):
+            return None
+        if re.search(r'\b(reinicie|reiniciado|desconecte|enchufe|conectado|conectados|ventilado|pared|equipos|dispositivos|imagen|foto|evidencia)\b', text):
+            return None
+    # Rechazar temas claramente ajenos; lo ambiguo merece una aclaración.
+    if re.search(r'\b(esposa|mujer|salud|accidente|flojo|politica|receta|pizza|embarazo|menstruacion|futbol)\b|quien gano.*partido', text):
+        return 'Ese tema está fuera del soporte de internet y del sistema web de ENTEL. ¿Tienes alguna consulta sobre esos servicios?'
+    if detect_direct_intent(text):
+        return None
+    return None
+
 
 
 def normalize_text(value):
-    normalized = " ".join(
-        "".join(
-            character
-            for character in unicodedata.normalize("NFD", str(value).lower())
-            if unicodedata.category(character) != "Mn"
-        ).replace("¿", "").replace("?", "").replace("¡", "").replace("!", "").split()
-    )
+    # Sólo se usa para análisis: nunca reemplaza el mensaje original persistido.
+    normalized = ''.join(c for c in unicodedata.normalize('NFD', str(value).lower())
+                         if unicodedata.category(c) != 'Mn')
+    # No corregir dentro de emails, códigos, identificadores ni palabras compuestas.
+    normalized = re.sub(r'[¿?¡!,;:]+', ' ', normalized)
+    normalized = re.sub(r'\bwi[ -]fi\b', 'wifi', normalized)
     corrections = {
-        "clasese": "clases", "clasees": "clases", "internte": "internet",
-        "wiffi": "wifi", "wifii": "wifi", "conecion": "conexion",
-        "coneccion": "conexion", "enrutador": "router", "moden": "modem",
+        'clasese': 'clases', 'clasees': 'clases', 'internte': 'internet',
+        'intenert': 'internet', 'interent': 'internet', 'wify': 'wifi',
+        'wiffi': 'wifi', 'wifii': 'wifi', 'ruter': 'router',
+        'kiero': 'quiero', 'reiniciee': 'reinicie', 'conecion': 'conexion', 'coneccion': 'conexion', 'enrutador': 'router', 'moden': 'modem',
+        'funka': 'funciona', 'funca': 'funciona',
+        'interned': 'internet', 'internete': 'internet', 'intrnet': 'internet',
     }
-    return " ".join(corrections.get(word, word) for word in normalized.split())
+    normalized = ' '.join(corrections.get(word, word) for word in normalized.split()).strip(' .')
+    normalized = re.sub(r'\bno ay (internet|conexion|senal)\b', r'no hay \1', normalized)
+    normalized = re.sub(r'\b(q|k) (ago|hago|pasa|puedo|debo)\b', r'que \2', normalized)
+    normalized = re.sub(r'\bque ago\b', 'que hago', normalized)
+    normalized = re.sub(r'\b(mi|el|sin|tengo|hay) inter\b', r'\1 internet', normalized)
+    normalized = re.sub(r'\b(mi|el|sin|tengo|hay) net\b', r'\1 internet', normalized)
+    normalized = re.sub(r'\bno (?:me )?agarra (?:mi |el )?wifi\b', 'no funciona el wifi', normalized)
+    return normalized
 
 
 # Ejemplos coloquiales y variaciones frecuentes de los clientes.
@@ -445,9 +604,7 @@ SUPPORT_GUIDES = {
     "service_sla": {
         "flow": "message",
         "message": (
-            "El tiempo de atención depende de la zona, prioridad y complejidad. Como referencia operativa, muchos casos "
-            "urbanos se programan dentro de 24 a 48 horas, pero no es una garantía automática. Daños externos extensos "
-            "pueden requerir más tiempo. Revisa el estado real desde Mis tickets y las notificaciones."
+            "El tiempo de atención depende de la zona, prioridad y disponibilidad técnica. Consulta la programación confirmada en Mis tickets."
         ),
     },
     "ftth_info": {
@@ -510,8 +667,7 @@ SUPPORT_GUIDES = {
     "consulta_general": {
         "flow": "message",
         "message": (
-            "Claro. Puedo ayudarte con falta de internet, lentitud, cortes, luces LOS/PON, WiFi, router, cable de fibra, "
-            "estado de tickets, visita técnica y orientación básica de red móvil. Cuéntame qué sucede y desde cuándo."
+            "Claro, ¿qué necesitas saber sobre tu servicio?"
         ),
     },
     "router_general": {
@@ -530,10 +686,70 @@ SUPPORT_GUIDES = {
     },
 }
 
+# Orientaciones revisadas para clientes: una acción o explicación breve.
+SUPPORT_GUIDES['wifi_password']['message'] = (
+    'Puedes buscar la contraseña WiFi en la etiqueta del equipo o consultarla en un dispositivo que ya esté conectado. '
+    'Si fue cambiada y no puedes recuperarla, solicita ayuda a soporte; evita restablecer el equipo de fábrica. '
+    'No compartas la contraseña en este chat.'
+)
+SUPPORT_GUIDES['ftth_info']['message'] = (
+    'FTTH significa fibra óptica hasta el hogar: el internet llega por un cable de fibra hasta tu vivienda. '
+    'La señal WiFi dentro de casa también depende de la distancia y las paredes.'
+)
+SUPPORT_GUIDES['website_only_issue']['message'] = (
+    '¿Las otras páginas o aplicaciones funcionan normalmente? Si solo falla una, prueba abrirla en otro navegador para comparar.'
+)
+SUPPORT_GUIDES['instalacion_ftth']['message'] = (
+    'La instalación depende de la cobertura en tu dirección. Consulta los requisitos, precios y fechas disponibles en los canales oficiales de ENTEL.'
+)
+SUPPORT_GUIDES['router_general']['message'] = '¿Qué sucede con tu equipo de internet?'
+SUPPORT_GUIDES['internet_general']['message'] = '¿Tu conexión no funciona, está lenta o se corta?'
+
+
 
 def detect_direct_intent(text):
     """Detecta primero la falla técnica y deja saludos para el final."""
     normalized = normalize_text(text)
+
+    social = general_intent(normalized)
+    if social:
+        return social
+    if re.search(r'\b(?:factura|facturacion|cobro indebido)\b', normalized):
+        return 'facturacion'
+    if re.search(r'\b(?:equipo|router|modem)\b.*(?:se reinicia|se apaga solo)|se reinicia (?:el |mi )?(?:equipo|router|modem)', normalized):
+        return 'router_restarts'
+    if re.search(r'\blent[oa]\b(?: ps| pues| nomas)?$', normalized) and not re.search(r'\bno\b', normalized):
+        return 'internet_lento'
+    # Descartar síntomas negados antes de buscar ejemplos y similitudes.
+    normalized = re.sub(r'\bno (?:hay|tengo|veo|tiene|presenta) (?:ninguna |una )?luz roja\b', '', normalized)
+    normalized = re.sub(r'\b(?:la )?luz (?:los )?no (?:esta|es) roja\b', '', normalized)
+    normalized = re.sub(r'\bno (?:esta |es |va )?lent[oa]\b', '', normalized)
+    if re.search(r'\bwi ?fi\b', normalized) and re.search(r'poca (?:senal|cobertura)|senal (?:muy )?(?:baja|debil)|no llega|lejos|alejad', normalized):
+        return 'wifi_weak'
+    if re.search(r'\b(?:internet|wifi|conexion)\b.*\bno funciona\b|no (?:me )?carga nada|no funciona nada|se fue la senal', normalized):
+        return 'sin_internet'
+    if re.search(r'\b(?:internet|wifi|conexion)\b.*(?:anda mal|no va bien)', normalized):
+        return 'problema_wifi_general' if 'wifi' in normalized else 'problema_internet_general'
+    if re.search(r'\b(?:youtube|netflix|whatsapp|video|partido|transmision|clases virtuales|videollamada)\b', normalized) and re.search(r'no (?:puedo ver|carga|funciona)|se (?:detiene|interrumpe|congela|traba)|afectad|cort', normalized):
+        return 'streaming'
+    if re.search(r'\b(?:celular|telefono|computadora|laptop)\b.*\bno (?:conecta|se conecta|tiene internet)\b', normalized):
+        return 'single_device_issue'
+    if re.search(r'\b(?:equipo|aparato)\b.*(?:apagado|no prende|no enciende)', normalized):
+        return 'router_power'
+    if re.search(r'\b(?:nap|dns|dhcp|gpon|ont|olt|pon|los)\b', normalized) and re.search(r'que es|significa|para que sirve', normalized):
+        return 'technical_definition'
+    if re.search(r'\bplan\b.*contrat|que plan tengo|mi plan actual', normalized):
+        return 'contracted_plan'
+    if re.search(r'\blos\b.*\broj[oa]\b|\bluz roja\b', normalized):
+        return 'los_rojo'
+    if re.search(r'\bpon\b.*(apag|parpade|no enciende)', normalized):
+        return 'problema_pon'
+    if re.search(r'\b(celular|movil|sim)\b', normalized) and re.search(r'sin (senal|servicio)|no tengo senal', normalized):
+        return 'mobile_no_signal'
+    if re.search(r'mi internet esta muerto|(?:mi )?(internet|wifi|conexion) (?:no agarra|se cayo)|no da internet|se me fue la senal', normalized):
+        return 'sin_internet'
+    if re.search(r'no (?:me |nos )?(?:funciona|anda|sirve) (?:el |mi )?(internet|wifi)|\b(no tengo|no hay|sin) (?:internet|conexion|senal)\b|se me fue el internet', normalized):
+        return 'sin_internet'
 
     # Las expresiones de impacto comercial o institucional no deben confundirse
     # con una solicitud para instalar un servicio nuevo.
@@ -554,8 +770,16 @@ def detect_direct_intent(text):
 
     for intent in TECHNICAL_INTENT_ORDER:
         for phrase in KNOWLEDGE_INTENT_EXAMPLES.get(intent, []):
-            if normalize_text(phrase) in normalized:
+            if re.search(r"(?<!\w)" + re.escape(normalize_text(phrase)) + r"(?!\w)", normalized):
                 return intent
+
+    if re.search(r'\b(se corta|se desconecta|intermitente|inestable)\b', normalized):
+        return 'cortes_internet'
+    if re.search(r'\b(internet|conexion|wifi)\b', normalized):
+        if re.search(r'\blent[oa]\b|velocidad (?:es |esta )?baja', normalized):
+            return 'internet_lento'
+        if re.search(r'fall|problema|anda mal|no anda bien|no va bien', normalized) or re.fullmatch(r'(con )?(mi |el |la )?(internet|conexion|wifi)', normalized):
+            return 'problema_wifi_general' if 'wifi' in normalized else 'problema_internet_general'
 
     for intent in ("router_general", "internet_general"):
         if any(
@@ -565,7 +789,7 @@ def detect_direct_intent(text):
             return intent
 
     for phrase in KNOWLEDGE_INTENT_EXAMPLES["consulta_general"]:
-        if normalize_text(phrase) in normalized:
+        if re.search(r"(?<!\w)" + re.escape(normalize_text(phrase)) + r"(?!\w)", normalized):
             return "consulta_general"
 
     short_message = len(normalized.split()) <= 6

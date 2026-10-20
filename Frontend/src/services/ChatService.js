@@ -1,14 +1,20 @@
 import { apiRequest } from './ApiService';
+import { orderChatMessages } from '../utils/chatMessageOrder';
 
 export const chatService = {
-  list: () => apiRequest('/conversations', { silent: true }),
-  create: (parentConversationId = null) => apiRequest('/conversations', {
+  list: async () => {
+    const result = await apiRequest('/conversations', { silent: true });
+    return {...result,conversations:(result.conversations || []).map(conversation=>({
+      ...conversation,messages:orderChatMessages(conversation.messages),
+    }))};
+  },
+  create: (parentConversationId = null, welcome = true) => apiRequest('/conversations', {
     method: 'POST', silent: true, timeoutMs: 180000,
-    body: JSON.stringify({ parentConversationId }),
+    body: JSON.stringify({ parentConversationId, welcome }),
   }),
-  send: (message, conversationId) => apiRequest('/conversations/message', {
+  send: (message, conversationId, requestId) => apiRequest('/conversations/message', {
     method: 'POST', silent: true, timeoutMs: 180000,
-    body: JSON.stringify({ message, conversationId }),
+    body: JSON.stringify({ message, conversationId, requestId }),
   }),
   finish: (conversationId) => apiRequest(`/conversations/${conversationId}/finish`, {
     method: 'PATCH',

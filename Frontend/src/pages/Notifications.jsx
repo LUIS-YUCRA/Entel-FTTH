@@ -22,7 +22,8 @@ const roleNames = {
 };
 
 const emailStatusLabel = {
-  ENVIADA: 'Correo enviado',
+  ENVIADA: 'Aceptado por el servidor de correo',
+  PENDIENTE: 'Correo pendiente',
   FALLIDA: 'Correo fallido',
   NO_CONFIGURADO: 'Solo plataforma',
   OMITIDA_QA: 'Solo plataforma',
@@ -188,7 +189,7 @@ const Notifications = () => {
             </article>
             <article className="rate">
               <span className="stat-icon"><FaChartLine /></span>
-              <div><strong>{metrics.deliveryRate}{metrics.deliveryRate !== '—' && '%'}</strong><span>Tasa de entrega</span></div>
+              <div><strong>{metrics.deliveryRate}{metrics.deliveryRate !== '—' && '%'}</strong><span>Aceptación por el servidor de correo</span></div>
             </article>
           </section>
 

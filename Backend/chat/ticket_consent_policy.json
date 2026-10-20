@@ -1,0 +1,28 @@
+{
+  "version": "natural-visit-consent-v1",
+  "negative": [
+    "^(?:no gracias|mejor no|por ahora no)\\b",
+    "^(?:no(?: gracias)?|no quiero|mejor no|por ahora no|despues|prefiero esperar|todavia no|aun no)(?: por favor)?$",
+    "\\bno (?:quiero|deseo|necesito|acepto|autorizo) (?:que (?:venga|vengan|envien|manden|(?:un |el )?tecnico)|(?:generar |registrar |crear )?(?:el |un |una )?(?:ticket|reclamo|tecnico|visita))\\b",
+    "\\bno (?:generes|genere|registres|registre|crees|cree|mandes|mande|manden|envies|envie|envien)\\b",
+    "\\bno hace falta (?:que venga|(?:un |el )?tecnico|(?:una )?visita)\\b",
+    "\\bno (?:venga|vengan) (?:un |el |ningun )?tecnico\\b"
+  ],
+  "uncertain": [
+    "\\b(?:solo si|si cuesta|si es|si hay|si puede|si pudiera|si no|si despues|si luego|si mas tarde)\\b",
+    "\\b(?:quiero|necesito) saber\\b",
+    "\\b(?:cuando|cuanto|a que hora|que dia) (?:viene|vienen|vendr|vendria|cuesta|cobra|puede)\\w*\\b",
+    "\\b(?:gratis|costo|cobro|pagar|cuesta)\\b",
+    "^no si\\b",
+    "\\b(?:es necesario|es posible|hace falta|tal vez|quizas|me dijeron|me dijo|antes queria|pensaba)\\b"
+  ],
+  "positive": [
+    "^(?:si(?: quiero)?|claro|correcto|de acuerdo|esta bien|dale|por favor|hazlo|adelante|ok|acepto)(?: por favor)?$",
+    "^(?:si )?(?:quiero |deseo |por favor )?(?:genera|generar|genere|registra|registrar|registre|crea|crear|cree) (?:el |un )?(?:ticket|reclamo)(?: tecnico)?(?: por favor)?$",
+    "\\b(?:quiero|deseo|necesito|solicito|autorizo|pido) (?:que (?:venga|vengan|(?:un |el )?tecnico)|(?:un |el )?tecnico|(?:una )?(?:visita|revision|atencion) tecnica)\\b",
+    "\\bque (?:un |el )?tecnico (?:venga|vengan|revise|revisen|solucione|solucionen)\\b",
+    "(?:^|\\b(?:que|quiero que|necesito que) )(?:venga|vengan) (?:un |el )?tecnico\\b",
+    "\\b(?:manda|mande|manden|envia|envie|envien|enviame|mandame|solicita|solicite) (?:a )?(?:un |el )?tecnico\\b",
+    "\\b(?:quiero|deseo|necesito) que (?:lo |la |mi servicio )?(?:revise|revisen|solucione|solucionen) (?:un |el )?tecnico\\b"
+  ]
+}

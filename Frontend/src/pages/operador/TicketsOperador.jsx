@@ -1,4 +1,5 @@
 import Pagination from '../../components/Pagination';
+import AssistantMessage from '../../components/AssistantMessage';
 import ResponsiveFilterSelect from '../../components/ResponsiveFilterSelect';
 import ResponsiveDateFilter from '../../components/ResponsiveDateFilter';
 import FeedbackDialog from '../../components/FeedbackDialog';
@@ -462,7 +463,7 @@ const TicketsOperador = () => {
                                 <strong>{message.sender === 'usuario'
                                   ? `Cliente · ${message.customer_name || selected.customer_name}`
                                   : 'Asistente FTTH'}</strong>
-                                <p>{message.content}</p>
+                                {message.sender === 'asistente' ? <AssistantMessage content={message.content} /> : <p>{message.content}</p>}
                               </div>
                             </article>
                           ))}

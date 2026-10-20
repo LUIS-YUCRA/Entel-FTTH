@@ -1,5 +1,6 @@
 const { verifyToken } = require('../utils/jwtHelper');
 const User = require('../models/User');
+const { isEntelEmail, CLIENT_EMAIL_MESSAGE } = require('./ValidationMiddleware');
 const { query } = require('../config/db');
 
 const authenticate = async (req, res, next) => {
@@ -38,6 +39,10 @@ const authenticate = async (req, res, next) => {
         error: 'Acceso denegado',
         message: 'Usuario no encontrado'
       });
+    }
+
+    if (user.user_type === 'cliente' && isEntelEmail(user.email)) {
+      return res.status(403).json({ message: CLIENT_EMAIL_MESSAGE });
     }
 
     if (!user.is_active) {

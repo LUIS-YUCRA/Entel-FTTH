@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { sendRecoveryEmail } = require('../utils/MailService');
-const { isAllowedEmail } = require('../middleware/ValidationMiddleware');
+const { isAllowedEmail, isValidEmail } = require('../middleware/ValidationMiddleware');
 
 const allowedRecoveryDomain = (user, email) => {
   return ['cliente', 'tecnico', 'operador', 'administrador'].includes(user.user_type)
@@ -11,7 +11,7 @@ const allowedRecoveryDomain = (user, email) => {
 const forgotPassword = async (req, res, next) => {
   try {
     const email = String(req.body.email || '').trim().toLowerCase();
-    if (!isAllowedEmail(email)) {
+    if (!isValidEmail(email)) {
       return res.status(400).json({
         message: 'Ingresa un correo electrónico válido',
       });

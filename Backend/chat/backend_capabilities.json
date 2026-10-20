@@ -1,0 +1,21 @@
+{
+  "version": "2026-10-14",
+  "customer": {
+    "account": "Registro con instancia, inicio y cierre de sesión; recuperación de contraseña desde el acceso. Instancia y categoría son de solo lectura para el cliente. La categoría proviene de un catálogo administrado de instancias; una instancia desconocida queda pendiente de verificación. El asistente puede ayudar a completar teléfono, domicilio, zona y CI faltantes mediante un formulario conectado y confirmación del backend. Nunca cambia contraseñas ni guarda datos que el cliente no proporcionó.",
+    "chat": "Conversaciones con historial, diagnóstico progresivo y registro de un reclamo técnico tras autorización. El código del ticket solo lo entrega el backend tras guardarlo. Una conversación vinculada a un ticket se cierra; para otro problema se abre un nuevo chat.",
+    "tickets": "Mis tickets permite consultar reclamos propios, estado, detalles, historial y técnico asignado cuando existe. Fechas y estados reales provienen de la consulta del backend, no de internet. El cliente no puede asignarse un técnico ni cambiar el estado de atención.",
+    "evidence": "Se pueden adjuntar imágenes JPEG, PNG, WEBP o video MP4, un archivo por carga, máximo 10 MB, a una conversación o ticket propio. Puede verse y descargarse evidencia autorizada. Nunca afirmar que un archivo se recibió sin confirmación del sistema.",
+    "notifications": "El sistema ofrece notificaciones de atención; consulta las disponibles en tu cuenta. No prometer avisos nuevos que el backend no confirmó.",
+    "commercial": "Este backend no administra planes contratados, facturación, pagos, traslado comercial, cobertura de una dirección ni bajas de servicio. El chat puede explicar y buscar requisitos públicos oficiales, pero no ejecutar esas operaciones. No registrar automáticamente un traslado comercial como falla técnica."
+  },
+  "staff": {
+    "operator": "Gestiona clientes, consulta tickets, asigna técnicos y coordina atención según permisos.",
+    "technician": "Consulta sus tickets asignados, documenta desplazamiento, atención, evidencias y solución. Puede consultar su historial y exportarlo.",
+    "administrator": "Gestiona usuarios y técnicos, el catálogo Instancias de servicio con categoría verificada, reportes y estadísticas, y revisa conocimiento del asistente antes de aprobarlo. Los clientes no acceden a esos datos ni operaciones."
+  },
+  "chatPermissions": {
+    "read": ["historial de la conversación actual", "hechos de diagnóstico", "conocimiento aprobado aplicable", "estado y fecha de un ticket propio cuando el backend lo consulta"],
+    "write": ["preparar reclamo técnico y solicitar autorización; backend valida y registra"],
+    "unavailable": ["consultas SQL arbitrarias", "acceso a secretos", "operaciones administrativas como cliente", "cambios de planes o facturación", "datos ajenos", "confirmar visitas sin registro"]
+  }
+}

@@ -1,8 +1,14 @@
 const ROLES = ['cliente', 'operador', 'tecnico', 'administrador'];
+const isValidEmail = (email) => /^[^\s@]+@[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/i.test(String(email || '').trim());
+const isEntelEmail = (email) => {
+  const domain = String(email || '').trim().toLowerCase().split('@')[1] || '';
+  return domain === 'entel.bo' || domain.endsWith('.entel.bo');
+};
+const CLIENT_EMAIL_MESSAGE = 'Usa tu correo personal o institucional. Los correos @entel.bo están reservados para cuentas del personal creadas por el administrador.';
 const isAllowedEmail = (email, userType = 'cliente') => {
   const normalized = String(email || '').trim().toLowerCase();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) return false;
-  if (userType === 'cliente') return true;
+  if (!isValidEmail(normalized)) return false;
+  if (userType === 'cliente') return !isEntelEmail(normalized);
   const domain = normalized.split('@')[1];
   return ['gmail.com', 'outlook.com', 'entel.bo', 'emi.edu.bo'].includes(domain)
     || /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:emi\.edu\.bo|entel\.bo)$/.test(domain);
@@ -10,7 +16,7 @@ const isAllowedEmail = (email, userType = 'cliente') => {
 const EMAIL_DOMAIN_MESSAGE = 'Utiliza Gmail, Outlook, correo institucional EMI (@emi.edu.bo o sus subdominios) o ENTEL (@entel.bo)';
 
 const validateDomain = (email, userType) => {
-  return isAllowedEmail(email, userType || 'cliente') ? null : EMAIL_DOMAIN_MESSAGE;
+  return isAllowedEmail(email, userType || 'cliente') ? null : (!userType || userType === 'cliente' ? CLIENT_EMAIL_MESSAGE : EMAIL_DOMAIN_MESSAGE);
 };
 
 const validateBase = (req, includeName) => {
@@ -27,7 +33,7 @@ const validateBase = (req, includeName) => {
   }
   if (includeName && userType && userType !== 'cliente') errors.push('Solo se pueden registrar clientes');
   if (email && (includeName || (userType && ROLES.includes(userType)))) {
-    const domainError = validateDomain(email, userType);
+    const domainError = validateDomain(email, includeName ? 'cliente' : userType);
     if (domainError) errors.push(domainError);
   }
   return errors;
@@ -61,4 +67,4 @@ const validateStaff = (req, res, next) => {
   if (typeof password !== 'string' || password.length < 8 || !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/.test(password)) return res.status(400).json({message:'La contraseña debe tener 8 caracteres, mayúscula, minúscula, número y símbolo'});
   return next();
 };
-module.exports = { validateLogin, validateRegister, validateStaff, isAllowedEmail, EMAIL_DOMAIN_MESSAGE };
+module.exports = { validateLogin, validateRegister, validateStaff, isAllowedEmail, isValidEmail, isEntelEmail, CLIENT_EMAIL_MESSAGE, EMAIL_DOMAIN_MESSAGE };

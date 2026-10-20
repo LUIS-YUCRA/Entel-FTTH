@@ -1,5 +1,5 @@
 const User = require('../models/User');
-const { isAllowedEmail, EMAIL_DOMAIN_MESSAGE } = require('../middleware/ValidationMiddleware');
+const { isAllowedEmail, CLIENT_EMAIL_MESSAGE, EMAIL_DOMAIN_MESSAGE } = require('../middleware/ValidationMiddleware');
 const { query } = require('../config/db');
 const { removeAccount } = require('../services/AccountRemovalService');
 
@@ -29,6 +29,7 @@ const get = async (req, res, next) => {
 
 const create = async (req, res, next) => {
   try {
+    if (req.user?.user_type !== 'administrador') return res.status(403).json({ message: 'Solo el administrador puede crear personal.' });
     const { fullName, email, password, userType } = req.body;
     if (!['operador', 'tecnico'].includes(userType)) return res.status(400).json({ message: 'Solo se pueden crear operadores o técnicos' });
     const parameter = userType === 'operador' ? 'MAX_OPERADORES' : 'MAX_TECNICOS';
@@ -56,6 +57,12 @@ const update = async (req, res, next) => {
   try {
     const existing = await User.findById(req.params.id);
     if (!existing) return res.status(404).json({ message: 'Usuario no encontrado' });
+    if (existing.user_type==='cliente' && req.body.customerCategory!==undefined && !['HOGAR','NEGOCIO','INSTITUCION'].includes(req.body.customerCategory)) {
+      return res.status(400).json({message:'Selecciona una categoría de cliente válida.'});
+    }
+    if (req.body.email !== undefined && !isAllowedEmail(req.body.email, existing.user_type)) {
+      return res.status(400).json({ message: existing.user_type === 'cliente' ? CLIENT_EMAIL_MESSAGE : EMAIL_DOMAIN_MESSAGE });
+    }
     if (req.body.userType && req.body.userType !== existing.user_type) return res.status(400).json({ message: 'El rol de una cuenta existente no puede cambiarse desde el perfil.' });
     if (existing.user_type === 'administrador' && req.body.isActive === true && !existing.is_active) {
       const active = await query("SELECT id FROM users WHERE user_type = 'administrador' AND is_active = TRUE AND id <> $1", [existing.id]);
@@ -67,7 +74,7 @@ const update = async (req, res, next) => {
     let user = await User.update(req.params.id, req.body);
     if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
     if (['tecnico', 'cliente'].includes(user.user_type)) {
-      user = await User.updateOwnProfile(user.id, req.body, user.user_type);
+      user = await User.updateOwnProfile(user.id, req.body, user.user_type, {allowCategoryChange:req.user.user_type==='administrador'});
     }
     await audit(req.user.id, 'ACTUALIZAR_USUARIO', user.id, req.body);
     return res.json({ success: true, user });

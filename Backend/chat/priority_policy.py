@@ -1,101 +1,30 @@
-"""Política central de prioridad para reclamos FTTH de ENTEL."""
-
+"""Prioridad preliminar; el backend calcula y registra la decisión definitiva."""
 from copy import deepcopy
-import unicodedata
+import json
+import re
+from pathlib import Path
+from knowledge_base import normalize_text
 
-
-def normalize_text(value):
-    return " ".join(
-        "".join(
-            character
-            for character in unicodedata.normalize("NFD", str(value).lower())
-            if unicodedata.category(character) != "Mn"
-        ).split()
-    )
-
-
-def _contains_any(text, phrases):
-    return any(phrase in text for phrase in phrases)
-
+RULES = json.loads(Path(__file__).with_name('priority_rules.json').read_text(encoding='utf-8'))
 
 def apply_priority_policy(diagnosis, context):
-    """Aplica la prioridad solicitada usando falla, zona y tipo de cliente."""
     adjusted = deepcopy(diagnosis or {})
-    history = context.get("conversation", {}).get("history", [])
-    combined_text = normalize_text(" ".join(
-        str(item.get("user", "")) for item in history if isinstance(item, dict)
-    ))
-    intent = context.get("intent", {}).get("intent", "desconocido")
-    customer_category = normalize_text(
-        (context.get("customer") or {}).get("customer_category", "HOGAR")
-    ).upper()
-    current = str(adjusted.get("priority", "MEDIA")).upper()
-    reason = "Prioridad definida por el diagnóstico técnico."
-
-    institution = _contains_any(combined_text, [
-        "institucion", "hospital", "clinica", "centro de salud", "colegio",
-        "escuela", "universidad", "alcaldia", "municipio", "empresa pequena",
-        "pequena empresa", "negocio", "tienda", "oficina", "hotel", "farmacia",
-        "restaurante", "unidad educativa", "sistema de ventas", "sistema de pedidos",
-    ])
-    populated_zone = _contains_any(combined_text, [
-        "zona poblada", "zona urbana", "centro de la ciudad", "zona centrica",
-        "barrio poblado", "muchos vecinos", "varias viviendas", "todo el barrio",
-    ])
-    medium_distance = _contains_any(combined_text, [
-        "zona no tan alejada", "zona cercana", "cerca de la ciudad",
-        "zona periurbana", "zona intermedia",
-    ])
-    remote_zone = _contains_any(combined_text, [
-        "zona alejada", "zona rural", "comunidad alejada", "area remota",
-        "lugar distante", "fuera del area urbana",
-    ]) and not medium_distance
-    service_problem = _contains_any(combined_text, [
-        "internet", "wifi", "conexion", "servicio", "senal", "fibra",
-    ])
-    no_internet = intent == "sin_internet" or _contains_any(combined_text, [
-        "no tengo internet", "sin internet", "no hay internet", "sin servicio",
-        "no puedo navegar", "se fue el internet", "se cayo el internet",
-    ])
-    damaged_cable = intent == "fiber_cable_damage" or _contains_any(combined_text, [
-        "cable danado", "cable roto", "cable cortado", "fibra danada",
-        "fibra rota", "mordio el cable",
-    ])
-    slow_service = intent in ("internet_lento", "streaming") or _contains_any(combined_text, [
-        "internet lento", "velocidad baja", "debajo del plan", "no llega la velocidad",
-    ])
-    powered_off = intent == "router_power" or _contains_any(combined_text, [
-        "modem apagado", "router apagado", "modem no enciende", "router no enciende",
-        "modem no prende", "router no prende",
-    ])
-
-    # La ubicación y el impacto colectivo tienen precedencia sobre la falla individual.
-    if customer_category in ("NEGOCIO", "INSTITUCION"):
-        current = "ALTA"
-        reason = f"Cliente de categoría {customer_category}: impacto operativo elevado."
-    elif (institution and service_problem) or populated_zone:
-        current = "ALTA"
-        reason = "Afecta a una institución, pequeña empresa o zona poblada."
-    elif remote_zone:
-        current = "BAJA"
-        reason = "El reporte corresponde a una zona alejada o rural."
-    elif medium_distance:
-        current = "MEDIA"
-        reason = "El reporte corresponde a una zona cercana o periurbana."
-    elif powered_off:
-        current = "ALTA"
-        reason = "El equipo permanece apagado después de descartar energía y adaptador."
-    elif no_internet:
-        current = "ALTA"
-        reason = "Existe pérdida total del servicio de internet."
-    elif damaged_cable:
-        current = "ALTA"
-        reason = "Existe daño físico de fibra y pérdida del servicio."
-    elif slow_service:
-        current = "MEDIA"
-        reason = "La degradación de velocidad requiere pruebas antes de escalar."
-
-    adjusted["priority"] = current if current in ("ALTA", "MEDIA", "BAJA") else "MEDIA"
-    adjusted["priority_reason"] = reason
-    adjusted.setdefault("source_intent", intent)
+    text = normalize_text(context.get('reported_problem', ''))
+    facts = context.get('diagnostic_facts', {})
+    category = str((context.get('customer') or {}).get('customer_category', 'HOGAR')).upper()
+    code = adjusted.get('code', '')
+    outage = code in RULES['outageCodes'] or context.get('intent', {}).get('intent') == 'sin_internet'
+    impact = bool(re.search(r'no (?:podemos|puedo) (?:cobrar|atender|vender)|no funciona.*(?:ventas|cobros)|operaciones (?:criticas )?(?:detenidas|paralizadas)|impide.*(?:clases|ventas|atencion)|no (?:hay|podemos dar) clases', text))
+    priority = 'MEDIA'
+    reason = 'Impacto pendiente de verificar por el backend.'
+    if code in RULES.get('safetyCodes', []):
+        priority, reason = 'ALTA', 'Indicios de daño eléctrico reportados.'
+    elif facts.get('device_scope') == 'single' or code in RULES['minorCodes']:
+        priority, reason = 'BAJA', 'Problema localizado sin interrupción general reportada.'
+    elif facts.get('fiber_damage_visible') or (impact and (outage or category in RULES['criticalCategories'])):
+        priority, reason = 'ALTA', 'Daño físico o interrupción operativa reportados.'
+    elif outage and re.search(r'desde ayer|desde anteayer', text):
+        priority, reason = 'ALTA', 'Interrupción total prolongada reportada.'
+    adjusted.update(priority=priority, priority_reason=reason, priority_policy=RULES['version'])
+    adjusted.setdefault('source_intent', context.get('intent', {}).get('intent'))
     return adjusted

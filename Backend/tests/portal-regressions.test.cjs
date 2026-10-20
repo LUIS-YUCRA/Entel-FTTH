@@ -6,6 +6,7 @@ const vm = require('node:vm');
 const {createRequire} = require('node:module');
 
 function load(file, overrides) {
+  overrides = {'../services/AssistantKnowledgeService':{knowledge:{approved:async()=>[]},normalize:value=>String(value).toLowerCase()},'../services/AssistantTurns':{turns:{fail:async()=>{}}},...overrides};
   const filename = path.resolve(__dirname, '../src', file);
   const realRequire = createRequire(filename);
   const module = {exports:{}};

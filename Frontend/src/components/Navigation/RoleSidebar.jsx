@@ -55,6 +55,7 @@ const roleNavigation = {
       { to: '/dashboard/administrador', label: 'Panel', icon: FaHome },
       { to: '/GestionTecnicos', label: 'Gestión de técnicos', icon: FaTools },
       { to: '/GestionUsuarios', label: 'Usuarios', icon: FaUsers },
+      { to: '/InstanciasServicio', label: 'Instancias de servicio', icon: FaClipboardList },
       { to: '/Reportes', label: 'Reportes', icon: FaChartBar },
       { to: '/PerfilAdmin', label: 'Mi perfil', icon: FaUser },
     ],

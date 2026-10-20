@@ -108,29 +108,60 @@ class Ticket {
       reportedDurationHours = null,
       priorityReason = null,
     } = data;
-    const ticketCode = await Ticket.generateCode();
+    const client = await pool.connect();
+    let ticket;
+    try {
+      await client.query('BEGIN');
+      if (data.deduplicate) {
+        // Serializa la comprobación y la inserción, incluso entre procesos Node.
+        await client.query('SELECT pg_advisory_xact_lock(73482, $1::integer)', [customerId]);
+        if (data.assistantTurnKey) {
+          const prior = await client.query('SELECT * FROM support_tickets WHERE assistant_turn_key=$1 AND customer_id=$2',[data.assistantTurnKey,customerId]);
+          if (prior.rows[0]) { await client.query('COMMIT'); return {...prior.rows[0],reused:true}; }
+        }
+        const existing = await client.query(
+          `SELECT * FROM support_tickets WHERE customer_id = $1 AND diagnosis_code = $2
+             AND status NOT IN ('RESUELTO','CERRADO','CANCELADO')
+             AND ($3::integer IS NULL OR EXISTS (SELECT 1 FROM conversations c WHERE c.id=$3 AND c.customer_id=$1 AND c.ticket_id=support_tickets.id))
+           ORDER BY created_at DESC LIMIT 1`, [customerId, diagnosisCode,data.conversationId||null],
+        );
+        if (existing.rows[0]) {
+          await client.query('COMMIT');
+          return { ...existing.rows[0], reused: true };
+        }
+      }
+      const sequence = await client.query("SELECT nextval('support_ticket_code_seq') AS number");
+      const ticketCode = `TK-${String(sequence.rows[0].number).padStart(3, '0')}`;
 
-    const result = await query(
-      `INSERT INTO support_tickets (
-        ticket_code, customer_id, operator_id, technician_id, title,
-        description, diagnosis_code, cause, priority, confidence,
-        customer_address, customer_zone, customer_category,
-        reported_duration_hours, priority_reason
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
-      RETURNING *`,
-      [
-        ticketCode, customerId, operatorId, technicianId, title,
-        description, diagnosisCode, cause, priority, confidence,
-        customerAddress, customerZone, customerCategory,
-        reportedDurationHours, priorityReason,
-      ],
-    );
-    const ticket = result.rows[0];
-    await query(
-      `INSERT INTO audit_logs (actor_id, action, entity_type, entity_id, details)
-       VALUES ($1,'CREAR_TICKET','TICKET',$2,$3::jsonb)`,
-      [customerId, String(ticket.id), JSON.stringify({ ticketCode: ticket.ticket_code, priority: ticket.priority })],
-    );
+      const result = await client.query(
+        `INSERT INTO support_tickets (
+          ticket_code, customer_id, operator_id, technician_id, title,
+          description, diagnosis_code, cause, priority, confidence,
+          customer_address, customer_zone, customer_category,
+          reported_duration_hours, priority_reason, assistant_turn_key,customer_category_verified
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+        RETURNING *`,
+        [
+          ticketCode, customerId, operatorId, technicianId, title,
+          description, diagnosisCode, cause, priority, confidence,
+          customerAddress, customerZone, customerCategory,
+          reportedDurationHours, priorityReason, data.assistantTurnKey || null,
+          data.customerCategoryVerified===true,
+        ],
+      );
+      ticket = result.rows[0];
+      await client.query(
+        `INSERT INTO audit_logs (actor_id, action, entity_type, entity_id, details)
+         VALUES ($1,'CREAR_TICKET','TICKET',$2,$3::jsonb)`,
+        [customerId, String(ticket.id), JSON.stringify({ ticketCode: ticket.ticket_code, priority: ticket.priority })],
+      );
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK').catch(() => {});
+      throw error;
+    } finally {
+      client.release();
+    }
     await Notification.create({
       userId: customerId,
       ticketId: ticket.id,
@@ -160,7 +191,12 @@ class Ticket {
     }
     const result = await query(
       `${BASE_SELECT} ${where}
-       ORDER BY t.created_at DESC, t.id DESC`,
+       ORDER BY ${user.user_type==='cliente'?'t.created_at DESC, t.id DESC':`CASE WHEN t.status IN ('RESUELTO','CERRADO','CANCELADO') THEN 1 ELSE 0 END,
+         CASE WHEN t.diagnosis_code='ELECTRICAL_STORM_DAMAGE' THEN 0 ELSE 1 END,
+         CASE t.priority WHEN 'ALTA' THEN 0 WHEN 'MEDIA' THEN 1 ELSE 2 END,
+         CASE WHEN t.diagnosis_code IN ('SIN_INTERNET','ROUTER_DANADO','PERDIDA_SENAL_OPTICA') THEN 0 WHEN t.diagnosis_code='INTERNET_LENTO' THEN 1 ELSE 2 END,
+         CASE WHEN t.customer_category_verified AND t.customer_category='INSTITUCION' THEN 0 WHEN t.customer_category_verified AND t.customer_category='NEGOCIO' THEN 1 ELSE 2 END,
+         t.created_at ASC,t.id ASC`}`,
       params,
     );
     return result.rows;
@@ -222,7 +258,7 @@ class Ticket {
        JOIN conversations c ON c.id = m.conversation_id
        LEFT JOIN users customer ON customer.id = c.customer_id
        WHERE c.ticket_id = $1
-       ORDER BY m.created_at ASC`,
+       ORDER BY m.id ASC`,
       [id],
     );
     return result.rows;

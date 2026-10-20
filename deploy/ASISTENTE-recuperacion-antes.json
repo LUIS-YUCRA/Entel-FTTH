@@ -1,0 +1,100 @@
+[
+  {
+    "threshold": 0.65,
+    "cases": 18,
+    "tp": 7,
+    "fp": 0,
+    "fn": 1,
+    "tn": 10,
+    "precision": 1.0,
+    "recall": 0.875,
+    "medianRetrievalMs": 0.317,
+    "failures": [
+      "la velocidad es baja"
+    ]
+  },
+  {
+    "threshold": 0.7,
+    "cases": 18,
+    "tp": 7,
+    "fp": 0,
+    "fn": 1,
+    "tn": 10,
+    "precision": 1.0,
+    "recall": 0.875,
+    "medianRetrievalMs": 0.248,
+    "failures": [
+      "la velocidad es baja"
+    ]
+  },
+  {
+    "threshold": 0.75,
+    "cases": 18,
+    "tp": 7,
+    "fp": 0,
+    "fn": 1,
+    "tn": 10,
+    "precision": 1.0,
+    "recall": 0.875,
+    "medianRetrievalMs": 0.218,
+    "failures": [
+      "la velocidad es baja"
+    ]
+  },
+  {
+    "threshold": 0.78,
+    "cases": 18,
+    "tp": 7,
+    "fp": 0,
+    "fn": 1,
+    "tn": 10,
+    "precision": 1.0,
+    "recall": 0.875,
+    "medianRetrievalMs": 0.214,
+    "failures": [
+      "la velocidad es baja"
+    ]
+  },
+  {
+    "threshold": 0.8,
+    "cases": 18,
+    "tp": 7,
+    "fp": 0,
+    "fn": 1,
+    "tn": 10,
+    "precision": 1.0,
+    "recall": 0.875,
+    "medianRetrievalMs": 0.21,
+    "failures": [
+      "la velocidad es baja"
+    ]
+  },
+  {
+    "threshold": 0.85,
+    "cases": 18,
+    "tp": 7,
+    "fp": 0,
+    "fn": 1,
+    "tn": 10,
+    "precision": 1.0,
+    "recall": 0.875,
+    "medianRetrievalMs": 0.213,
+    "failures": [
+      "la velocidad es baja"
+    ]
+  },
+  {
+    "threshold": 0.9,
+    "cases": 18,
+    "tp": 7,
+    "fp": 0,
+    "fn": 1,
+    "tn": 10,
+    "precision": 1.0,
+    "recall": 0.875,
+    "medianRetrievalMs": 0.21,
+    "failures": [
+      "la velocidad es baja"
+    ]
+  }
+]

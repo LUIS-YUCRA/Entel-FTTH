@@ -1,0 +1,13 @@
+{
+  "version": "ftth-guidance-2026-10-v2",
+  "compatibleVersions": ["ftth-guidance-2026-10-v1"],
+  "slots": {
+    "outage:fiber_check": {"label": "LOS roja: revisión visual de fibra", "intents": ["los_rojo", "sin_internet"], "conditions": {"los_status": "red"}},
+    "slow:device_scope": {"label": "Lentitud: alcance por dispositivos", "intents": ["internet_lento", "velocidad_baja"], "conditions": {}},
+    "info:ftth_info": {"label": "Información FTTH", "intents": ["ftth_info"], "conditions": {}},
+    "info:facturacion": {"label": "Orientación de facturación", "intents": ["facturacion"], "conditions": {}},
+    "info:instalacion_ftth": {"label": "Orientación de instalación", "intents": ["instalacion_ftth"], "conditions": {}},
+    "info:wifi_password": {"label": "Orientación de clave WiFi", "intents": ["wifi_password"], "conditions": {}},
+    "info:general_support": {"label": "Consulta nueva: orientación técnica revisada", "intents": ["desconocido"], "conditions": {}, "allowedStates": ["START"]}
+  }
+}

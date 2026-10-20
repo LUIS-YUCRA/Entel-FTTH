@@ -665,3 +665,34 @@
   .assistant-card .conversation-options { width: 44px; height: 44px; }
   .chat-closed button { min-height: 44px; }
 }
+
+.assistant-profile-card { display: grid; gap: 10px; margin-top: 14px; padding: 16px; border: 1px solid #d7e4ed; border-radius: 12px; background: #f5f9fc; color: #15344e; }
+.assistant-profile-card label { font-weight: 600; }
+.assistant-profile-card input { min-width: 0; width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #b8cbd9; border-radius: 7px; background: white; font: inherit; }
+.assistant-profile-card small { line-height: 1.5; color: #4d6578; }
+.assistant-profile-card button { justify-self: start; border: 0; border-radius: 7px; padding: 10px 14px; background: #12619b; color: white; font: inherit; cursor: pointer; }
+.assistant-profile-card button:disabled { opacity: .6; cursor: default; }
+
+/* Mobile launcher; desktop keeps its existing inline assistant. */
+.mobile-assistant-launcher, .mobile-assistant-close { display: none; }
+@media (max-width: 760px) {
+  .mobile-assistant-launcher { position: fixed; right: 18px; bottom: max(20px, env(safe-area-inset-bottom)); z-index: 1100; display: grid; place-items: center; width: 60px; height: 60px; padding: 0; border: 0; border-radius: 50%; color: #fff; background: linear-gradient(145deg, #06aaca, #0879bd); box-shadow: 0 6px 24px #0879bd55; font: inherit; font-weight: 700; cursor: pointer; }
+  .mobile-assistant-launcher > svg { width: 30px; height: 30px; }
+  .client-assistant-layout { display: none; }
+  .cliente-main { display: flex; flex-direction: column; }
+  .cliente-main > * { order: 2; }
+  .cliente-main > .client-page-heading { order: 0; }
+  .cliente-main > .client-assistant-layout { order: 1; }
+  .client-assistant-layout.mobile-chat-open { display: block; position: relative; width: 100%; min-width: 0; margin-bottom: 18px; }
+  .mobile-assistant-launcher[aria-expanded="true"] { display: none; }
+  .mobile-chat-open .assistant-card { height: auto; min-height: 0; border-radius: 15px; }
+  .mobile-chat-open .assistant-chat-layout { height: auto; min-height: 0; display: flex; flex-direction: column; }
+  .mobile-chat-open .assistant-chat-main { display: flex; flex: 1; flex-direction: column; min-height: 0; }
+  .mobile-chat-open .assistant-card-header { align-items: center; flex-shrink: 0; padding: 12px; }
+  .mobile-assistant-close { display: grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; border: 0; border-radius: 9px; background: #e5f3f9; color: #0879bd; cursor: pointer; }
+  .mobile-chat-open .assistant-box { display: flex; flex: 1; flex-direction: column; min-height: 0; padding: 12px 12px max(12px, env(safe-area-inset-bottom)); }
+  .mobile-chat-open .conversation-panel, .mobile-chat-open .conversation-panel:has(.assistant-empty) { flex: 1; min-height: 220px; max-height: 48dvh; overflow-y: auto; }
+  .mobile-chat-open .assistant-input-container, .mobile-chat-open .chat-closed, .mobile-chat-open .file-list { flex-shrink: 0; }
+  .mobile-chat-open .assistant-input-container input { font-size: 16px; }
+  .mobile-assistant-launcher:focus-visible, .mobile-assistant-close:focus-visible { outline: 3px solid #65b9df; outline-offset: 3px; }
+}

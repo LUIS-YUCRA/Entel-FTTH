@@ -19,10 +19,10 @@ const resolvePythonPath = () => {
   return process.platform === 'win32' ? 'python' : 'python3';
 };
 
-const runPython = (args) => new Promise((resolve, reject) => {
+const runPython = (args, input) => new Promise((resolve, reject) => {
   let executable;
   try { executable = resolvePythonPath(); } catch (error) { reject(error); return; }
-  execFile(executable, ['-u', ...args], {
+  const child = execFile(executable, ['-u', ...args], {
     cwd: backendRoot,
     windowsHide: true,
     timeout: 120000,
@@ -39,5 +39,14 @@ const runPython = (args) => new Promise((resolve, reject) => {
       resolve(stdout.split(/\r?\n/).filter(Boolean));
     }
   });
+  child.stdin.on('error', () => {});
+  child.stdin.end(input || '');
 });
-module.exports = { resolvePythonPath, runPython };
+let assistantPool;
+const runAssistant = payload => {
+  if(process.env.ASSISTANT_PROCESS_MODE==='oneshot')return runPython([path.join(backendRoot,'chat/assistant_runner.py'),'--stdin'],JSON.stringify(payload));
+  if(!assistantPool){const {AssistantWorkerPool}=require('./AssistantWorkerPool');assistantPool=new AssistantWorkerPool(resolvePythonPath,process.env.ASSISTANT_WORKERS);}
+  return assistantPool.run(payload);
+};
+const closeAssistantWorkers = () => {assistantPool?.close();assistantPool=null;};
+module.exports = { resolvePythonPath, runPython, runAssistant, closeAssistantWorkers };

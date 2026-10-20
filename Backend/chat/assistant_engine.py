@@ -6,6 +6,7 @@ Sistema Inteligente FTTH - ENTEL
 from dialog_manager import dialog_manager
 from solution_engine import solution_engine
 from response_generator import response_generator
+from memory import memory
 class AssistantEngine:
     def __init__(self):
         print(
@@ -18,72 +19,7 @@ class AssistantEngine:
     # Procesar mensaje
     # =====================================================
     def process(self, message, intent=None, entities=None):
-        message_lower = message.lower().strip()
-        # =================================================
-        # ¿Está esperando confirmación?
-        # =================================================
-        if self.waiting_confirmation:
-            # ---------------------------------------------
-            # El usuario indica que SI funcionó
-            # ---------------------------------------------
-            if message_lower in [
-                "si",
-                "sí",
-                "funciono",
-                "funcionó",
-                "ya funciona",
-                "solucionado",
-                "resuelto",
-                "listo",
-                "ok",
-                "perfecto"
-            ]:
-                self.waiting_confirmation = False
-                self.pending_diagnosis = None
-                return {
-                    "response":
-                    (
-                        "Excelente.\n\n"
-                        "Me alegra que el problema se haya solucionado.\n"
-                        "Si necesitas ayuda nuevamente estaré disponible."
-                    ),
-                    "dialog": None,
-                    "diagnosis": None,
-                    "ticket": None
-                }
-            # ---------------------------------------------
-            # El usuario indica que NO funcionó
-            # ---------------------------------------------
-            if message_lower in [
-                "no",
-                "no funciona",
-                "continua",
-                "continúa",
-                "sigue igual",
-                "persiste",
-                "no se soluciono",
-                "no se solucionó",
-                "igual",
-                "sigue"
-            ]:
-                self.waiting_confirmation = False
-                # Generar ticket automáticamente
-                return self._create_ticket_from_diagnosis(self.pending_diagnosis)
-            return {
-                "response":
-                (
-                    "Por favor responde únicamente:\n\n"
-                    "SI\n"
-                    "o\n"
-                    "NO"
-                ),
-                "dialog": None,
-                "diagnosis": self.pending_diagnosis,
-                "ticket": None
-            }
-        # -------------------------------------------------
-        # Procesar conversación con dialog_manager
-        # -------------------------------------------------
+        # Todas las confirmaciones pasan por el estado persistido del diálogo.
         dialog_result = dialog_manager.process_message(
             message=message,
             intent=intent,
@@ -128,15 +64,14 @@ class AssistantEngine:
             if diagnosis_from_dialog:
                 # Guardar diagnóstico pendiente
                 self.pending_diagnosis = diagnosis_from_dialog
-                self.waiting_confirmation = True
+                memory.get_context()["conversation"]["solution_step"] = 0
                 response = response_generator.generate({
                     "type": "DIAGNOSIS",
                     "diagnosis": diagnosis_from_dialog
                 })
                 response += (
                     "\n\n"
-                    "¿Los pasos recomendados solucionaron el problema?\n"
-                    "Responde SI o NO"
+                    "¿La conexión ya funciona?"
                 )
                 return {
                     "response": response,
@@ -178,41 +113,12 @@ class AssistantEngine:
     # Crear ticket desde diagnóstico
     # =====================================================
     def _create_ticket_from_diagnosis(self, diagnosis):
-        from ticket_service import ticket_service
-        from memory import memory
         if diagnosis is None:
-            return {
-                "response": "No hay diagnóstico para generar un ticket.",
-                "dialog": None,
-                "diagnosis": None,
-                "ticket": None
-            }
-        customer = memory.get_customer()
-        # Asegurar que el diagnóstico tenga ticket_required = True
-        if not diagnosis.get("ticket_required", False):
-            diagnosis["ticket_required"] = True
-        result = ticket_service.create_ticket(
-            diagnosis,
-            customer
-        )
-        if result.get("created"):
-            ticket = result["ticket"]
-            memory.set_ticket(ticket)
-            memory.finish()
-            self.waiting_confirmation = False
-            self.pending_diagnosis = None
-            return {
-                "response": f"🎫 ¡TICKET GENERADO CORRECTAMENTE!\n\n📋 Número de ticket: {ticket['ticket_id']}\n\n📌 Estado: PENDIENTE\n\n👨‍🔧 Un técnico revisará su servicio FTTH en las próximas horas.\n\n📱 Recibirá notificaciones sobre el estado de su reclamo.\n\n¡Gracias por confiar en ENTEL!",
-                "dialog": None,
-                "diagnosis": diagnosis,
-                "ticket": ticket
-            }
-        return {
-            "response": "❌ No fue posible generar el ticket técnico. Por favor, intenta nuevamente.",
-            "dialog": None,
-            "diagnosis": diagnosis,
-            "ticket": None
-        }
+            return {"response": "No hay diagnóstico para generar un ticket.", "dialog": None, "diagnosis": None, "ticket": None}
+        memory.set_diagnosis(diagnosis)
+        memory.set_dialog_state('WAITING_TICKET_CONFIRMATION')
+        return {"response": "¿Deseas que registre un ticket para revisión técnica?",
+                "dialog": None, "diagnosis": diagnosis, "ticket": None}
 # =========================================================
 # Instancia global
 # =========================================================

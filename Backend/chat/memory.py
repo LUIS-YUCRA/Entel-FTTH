@@ -6,6 +6,8 @@ entre el cliente y el asistente.
 Sistema Inteligente FTTH - ENTEL
 """
 import sys
+from datetime import datetime, timezone
+from config import Config
 class ConversationMemory:
     def __init__(self):
         self.clear()
@@ -113,13 +115,16 @@ class ConversationMemory:
                 else:
                     old_entities[key] = value
             self.context["entities"] = old_entities
-        # Agregar al historial
-        self.context["conversation"]["history"].append({
-            "user": message,
-            "intent": self.context["intent"]["intent"],
-            "timestamp": "now"
+        self.record_message(message)
+
+    def record_message(self, message):
+        conversation = self.context['conversation']
+        conversation.setdefault('history', []).append({
+            'user': message, 'intent': self.context['intent']['intent'],
+            'timestamp': datetime.now(timezone.utc).isoformat(),
         })
-        self.context["conversation"]["step"] += 1
+        conversation['history'] = conversation['history'][-max(1, Config.MAX_HISTORY):]
+        conversation['step'] = conversation.get('step', 0) + 1
     # =====================================================
     # Contexto completo
     # =====================================================

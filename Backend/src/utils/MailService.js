@@ -106,13 +106,38 @@ const buildNotificationEmail = (email, title, message) => {
   const notificationsUrl = `${frontendUrl}/notificaciones`;
   const logoPath = path.resolve(__dirname, '../../../Frontend/src/assets/entel_bolivia.webp');
   const attachments = fs.existsSync(logoPath)
-    ? [{ filename: 'entel-bolivia.webp', path: logoPath, cid: 'entel-logo' }]
+    ? [{ filename: 'entel-bolivia.webp', path: logoPath, cid: 'entel-logo', contentDisposition: 'inline' }]
     : [];
   return {
     to: email,
     subject: title,
     text: `${message}\n\nConsulta tu cuenta: ${notificationsUrl}`,
-    html: `<div style="font-family:Arial,sans-serif;font-size:16px;line-height:1.6"><h2>${escapeHtml(title)}</h2><p>${escapeHtml(message).replaceAll('\n', '<br>')}</p><a href="${escapeHtml(notificationsUrl)}">Consultar notificaciones</a></div>`,
+    html: `<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="margin:0;padding:0;background-color:#edf6fb;font-family:Arial,Helvetica,sans-serif;color:#173653;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#edf6fb;">
+    <tr><td align="center" style="padding:28px 12px;">
+      <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px;background-color:#ffffff;border:1px solid #cce2ef;border-radius:16px;overflow:hidden;">
+        <tr><td style="padding:24px 28px;background-color:#0088bc;background-image:linear-gradient(110deg,#0076b4,#00a3c7);color:#ffffff;">
+          ${attachments.length ? '<table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr><td style="padding:8px 18px;background-color:#ffffff;border-radius:8px;"><img src="cid:entel-logo" width="84" alt="ENTEL" style="display:block;width:84px;height:auto;border:0;"></td></tr></table>' : '<strong style="font-size:30px;color:#ffffff;">entel</strong>'}
+          <p style="margin:16px 0 8px;font-size:12px;line-height:1.4;">Sistema de atención técnica FTTH</p>
+          <h1 style="margin:0;font-size:22px;line-height:1.4;font-weight:bold;">${escapeHtml(title)}</h1>
+        </td></tr>
+        <tr><td style="padding:24px 28px 28px;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+            <tr><td style="padding:20px 22px;border-left:4px solid #00a3d4;background-color:#f3f9fd;border-radius:8px;font-size:14px;line-height:1.75;word-break:break-word;">${escapeHtml(message).replaceAll('\n', '<br>')}</td></tr>
+          </table>
+          <p style="margin:24px 0 16px;font-size:13px;line-height:1.6;">Consulta el seguimiento, historial y datos de la visita desde el sistema ENTEL FTTH.</p>
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr><td bgcolor="#007fba" style="border-radius:8px;">
+            <a href="${escapeHtml(notificationsUrl)}" style="display:inline-block;padding:14px 22px;color:#ffffff;text-decoration:none;font-size:14px;font-weight:bold;">Consultar notificaciones</a>
+          </td></tr></table>
+          <p style="margin:18px 0 0;font-size:11px;line-height:1.5;word-break:break-all;"><a href="${escapeHtml(notificationsUrl)}" style="color:#0076b4;">${escapeHtml(notificationsUrl)}</a></p>
+        </td></tr>
+        <tr><td style="padding:16px 28px;border-top:1px solid #d8e9f3;background-color:#f8fbfe;color:#6687a2;font-size:11px;line-height:1.5;">ENTEL Bolivia · Atención técnica de fibra óptica</td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`,
     attachments,
   };
 };

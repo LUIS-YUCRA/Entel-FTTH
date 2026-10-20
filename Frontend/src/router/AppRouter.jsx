@@ -19,6 +19,7 @@ import PerfilTecnico from '../pages/tecnico/PerfilTecnico';
 import AdminDashboard from '../pages/admin/AdminDashboard';
 import Reportes from '../pages/admin/Reportes';
 import GestionUsuarios from '../pages/admin/GestionUsuarios';
+import InstanciasServicio from '../pages/admin/InstanciasServicio';
 import PerfilAdmin from '../pages/admin/PerfilAdmin';
 import Notifications from '../pages/Notifications';
 
@@ -55,6 +56,8 @@ const AppRouter = () => (
       <Route path="/GestionTecnicos" element={secure(<TecnicoDisponible />, ['administrador'])} />
       <Route path="/Reportes" element={secure(<Reportes />, ['administrador'])} />
       <Route path="/GestionUsuarios" element={secure(<GestionUsuarios />, ['administrador'])} />
+      <Route path="/InstanciasServicio" element={secure(<InstanciasServicio />, ['administrador'])} />
+      <Route path="/ConocimientoAsistente" element={secure(<Navigate to="/dashboard/administrador" replace />, ['administrador'])} />
       <Route path="/PerfilAdmin" element={secure(<PerfilAdmin />, ['administrador'])} />
       <Route path="/notificaciones" element={secure(<Notifications />, ['cliente', 'operador', 'tecnico'])} />
 

@@ -82,7 +82,7 @@ class Conversation {
       `SELECT content FROM conversation_messages
        WHERE conversation_id = $1 AND sender = 'usuario'
          AND LOWER(TRIM(content)) NOT IN ('si','sí','no','ok','dale','de acuerdo')
-       ORDER BY created_at ASC LIMIT 1`,
+       ORDER BY id ASC LIMIT 1`,
       [conversationId],
     );
     return result.rows[0]?.content || null;
@@ -115,7 +115,7 @@ class Conversation {
                 json_build_object(
                   'id', m.id, 'sender', m.sender, 'content', m.content,
                   'metadata', m.metadata, 'created_at', m.created_at
-                ) ORDER BY m.created_at
+                ) ORDER BY m.id ASC
               ) FILTER (WHERE m.id IS NOT NULL), '[]') AS messages
        FROM conversations c
        JOIN users u ON u.id = c.customer_id

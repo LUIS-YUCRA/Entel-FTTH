@@ -1,0 +1,675 @@
+{
+  "date": "2026-10-14T21:51:03.043Z",
+  "turns": 51,
+  "scenarios": [
+    {
+      "name": "01 · Olor a quemado y visita",
+      "fixture": false,
+      "turns": [
+        {
+          "message": "buenos dias",
+          "response": "¡Buenos días! ¿En qué puedo ayudarte?",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "mi router huele a quemado",
+          "response": "Mantén distancia del equipo y no intentes abrirlo ni volver a encenderlo. ¿Quieres registrar un reclamo para revisión técnica?",
+          "provider": "local",
+          "fallback": "ELECTRICAL_SAFETY",
+          "state": "WAITING_TICKET_CONFIRMATION",
+          "ticketCandidate": false
+        },
+        {
+          "message": "entonces tiene que venir alguien?",
+          "response": "Por el olor a quemado, el equipo necesita una revisión segura; soporte evaluará si hace falta una visita técnica. No puedo confirmar una visita ni una fecha. Mientras tanto, mantén distancia y no lo abras ni vuelvas a encenderlo; la autorización para registrar el reclamo sigue pendiente.",
+          "provider": "openai",
+          "state": "WAITING_TICKET_CONFIRMATION",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "y eso tiene costo?",
+          "response": "No tengo un costo verificado para la revisión o una posible visita. ENTEL publica la reposición del equipo de fibra sin costo por falla técnica, previo informe técnico; si el daño se debe a causas ajenas a ENTEL, publica Bs366 según el contrato de préstamo. El olor a quemado por sí solo no permite determinar cuál corresponde: mantén distancia y no vuelvas a encender el equipo. La autorización para registrar el reclamo sigue pendiente.\n\nFuentes: [1](https://www.entel.bo/HogarInternetFibra?utm_source=openai)",
+          "provider": "openai",
+          "state": "WAITING_TICKET_CONFIRMATION",
+          "web": {
+            "status": "verified",
+            "topic": "billing",
+            "usageId": "3",
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "no gracias, primero consultare el costo",
+          "response": "Entendido, no registraré ningún ticket. Si necesitas ayuda más adelante, aquí estaré.",
+          "provider": "local",
+          "fallback": "TICKET_CONSENT_BACKEND",
+          "state": "FINISHED",
+          "ticketCandidate": false
+        }
+      ],
+      "issues": [],
+      "source": "C:\\Users\\LUIS\\OneDrive - Escuela Militar de Ingenieria\\Documents\\10mo semestre\\TRABAJO DE GRADO II\\SistemaFTTH-integrado\\SistemaFTTH\\tmp\\conversaciones-web-1792014375066\\resultados.json"
+    },
+    {
+      "name": "02 · Traslado de domicilio",
+      "fixture": false,
+      "turns": [
+        {
+          "message": "hola",
+          "response": "¡Hola! ¿En qué puedo ayudarte con tu servicio de internet o con la aplicación?",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "me cambie de domicilio y quiero llevarme el equipo de internet",
+          "response": "Para usar tu internet en el nuevo domicilio necesitas gestionar un traslado con ENTEL: deben confirmar cobertura y factibilidad técnica y coordinar la instalación; no basta con llevar y conectar el equipo. No desconectes ni manipules la fibra; confirma con ENTEL cómo proceder con el equipo. Para Fibra Hogar se publica un cargo de Bs100 por traslado dentro de la misma ciudad, sujeto a factibilidad; otros paquetes pueden tener un cargo distinto. Puedes consultar el trámite al 103 desde un móvil ENTEL o al 800103638 desde un teléfono fijo; desde este chat no puedo ejecutar el traslado.\n\nFuentes: [1](https://www.entel.bo/HogarInternetFibra?utm_source=openai) · [2](https://www.entel.bo/activos/assets/pdf/internet_fibra/Internet%20Fibra.pdf?utm_source=openai)",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "verified",
+            "topic": "relocation",
+            "usageId": "2",
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "puedo conectarlo yo en la nueva casa?",
+          "response": "No basta con llevar el equipo y conectarlo en la nueva casa: ENTEL debe confirmar la cobertura y coordinar la instalación del servicio. No desconectes ni manipules la fibra; consulta cómo proceder con el equipo al gestionar el traslado. Desde este chat puedo orientarte, pero no realizar el trámite.",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "que necesito para pedir el traslado?",
+          "response": "Para pedir el traslado, ENTEL debe verificar la cobertura y la factibilidad técnica en tu nueva dirección. Sus condiciones indican que debe mantenerse el mismo titular y la misma tecnología de acceso, y que el traslado se realiza dentro de la misma ciudad.\nNo tengo una lista oficial completa de documentos específicos para este trámite: ENTEL menciona documento de identidad y croquis como requisitos generales del servicio, pero debes confirmar cuáles exige para el traslado. Consulta también cómo proceder con el equipo; no desconectes ni manipules la fibra.\n\nFuentes: [1](https://www.entel.bo/HogarInternetFibra?utm_source=openai) · [2](https://www.entel.bo/entel/backend/activos/panel/docs/Prestaci%C3%B3n%20del%20servicio%20de%20acceso%20a%20Internet.pdf?utm_source=openai)",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "verified",
+            "topic": "relocation",
+            "usageId": "2",
+            "cached": true
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "gracias, voy a solicitarlo con ENTEL",
+          "response": "De nada. Espero que puedas coordinar el traslado sin inconvenientes.",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        }
+      ],
+      "issues": [],
+      "source": "C:\\Users\\LUIS\\OneDrive - Escuela Militar de Ingenieria\\Documents\\10mo semestre\\TRABAJO DE GRADO II\\SistemaFTTH-integrado\\SistemaFTTH\\tmp\\conversaciones-web-1792014471826\\resultados.json"
+    },
+    {
+      "name": "03 · Lentitud y explicación del diagnóstico",
+      "fixture": false,
+      "turns": [
+        {
+          "message": "buenas tardes",
+          "response": "Buenas tardes. ¿En qué puedo ayudarte con tu servicio o la aplicación?",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "mi internet esta lento",
+          "response": "Lamento el inconveniente; con gusto te ayudaré. Antes de revisar la conexión, ¿la falla ocurre en el domicilio donde tienes instalado el servicio?",
+          "provider": "guided",
+          "state": "START",
+          "ticketCandidate": false
+        },
+        {
+          "message": "si, en mi domicilio",
+          "response": "¿La lentitud ocurre en todos tus dispositivos, en algunos o solo en uno?",
+          "provider": "openai",
+          "state": "GUIDED_DIAGNOSIS",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "por que me preguntas cuantos dispositivos?",
+          "response": "Te lo pregunto para distinguir si la lentitud afecta a la conexión en general o solo a un dispositivo. Así podemos elegir la prueba adecuada y evitar comprobaciones innecesarias; no necesito saber el número exacto de dispositivos.",
+          "provider": "openai",
+          "state": "GUIDED_DIAGNOSIS",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "en todos, por wifi y por cable",
+          "response": "Como la lentitud ocurre en todos los dispositivos, tanto por WiFi como por cable, no parece limitarse a la cobertura WiFi. Pausa las descargas que estén en curso y prueba abrir una página web en un dispositivo conectado por cable. ¿La página sigue cargando lentamente?",
+          "provider": "openai",
+          "state": "GUIDED_DIAGNOSIS",
+          "web": {
+            "status": "verified",
+            "topic": "wifi",
+            "usageId": "4",
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "pause las descargas y ahora ya funciona bien",
+          "response": "Qué bueno que ya funciona bien. Las descargas pueden ocupar gran parte de la conexión y ralentizar los demás dispositivos; para evitarlo, puedes limitar su velocidad o dejarlas para cuando no estés usando internet.",
+          "provider": "openai",
+          "state": "FINISHED",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        }
+      ],
+      "issues": [],
+      "source": "C:\\Users\\LUIS\\OneDrive - Escuela Militar de Ingenieria\\Documents\\10mo semestre\\TRABAJO DE GRADO II\\SistemaFTTH-integrado\\SistemaFTTH\\tmp\\conversaciones-web-1792014559567\\resultados.json"
+    },
+    {
+      "name": "04 · Fibra cortada",
+      "fixture": false,
+      "turns": [
+        {
+          "message": "hola",
+          "response": "¡Hola! ¿En qué puedo ayudarte?",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "no tengo internet, el cable de fibra esta cortado",
+          "response": "No manipules ni intentes reparar el cable. Lamento el inconveniente; con gusto te ayudaré. Antes de revisar la conexión, ¿la falla ocurre en el domicilio donde tienes instalado el servicio?",
+          "provider": "guided",
+          "state": "START",
+          "ticketCandidate": false
+        },
+        {
+          "message": "si, en mi domicilio",
+          "response": "El cable de fibra cortado requiere revisión técnica; no lo manipules ni intentes repararlo. ¿Autorizas que se registre un reclamo por la falta de internet y el cable cortado?",
+          "provider": "openai",
+          "state": "WAITING_TICKET_CONFIRMATION",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "puedo unirlo con cinta mientras llega alguien?",
+          "response": "No, la cinta no restablece la conexión de fibra. Deja el cable como está: no intentes unirlo, manipularlo ni mirar sus extremos; requiere revisión técnica. Aún está pendiente tu autorización para registrar el reclamo y no hay una visita confirmada.",
+          "provider": "openai",
+          "state": "WAITING_TICKET_CONFIRMATION",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "no quiero registrar el reclamo por ahora, gracias",
+          "response": "Entendido, no registraré ningún ticket. Si necesitas ayuda más adelante, aquí estaré.",
+          "provider": "local",
+          "fallback": "TICKET_CONSENT_BACKEND",
+          "state": "FINISHED",
+          "ticketCandidate": false
+        }
+      ],
+      "issues": [],
+      "source": "C:\\Users\\LUIS\\OneDrive - Escuela Militar de Ingenieria\\Documents\\10mo semestre\\TRABAJO DE GRADO II\\SistemaFTTH-integrado\\SistemaFTTH\\tmp\\conversaciones-web-1792014560909\\resultados.json"
+    },
+    {
+      "name": "05 · Cobertura WiFi",
+      "fixture": false,
+      "turns": [
+        {
+          "message": "hola",
+          "response": "¡Hola! ¿En qué puedo ayudarte con tu servicio de internet o con la aplicación?",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "cerca del router funciona bien pero en mi cuarto el wifi esta lento",
+          "response": "Lamento el inconveniente; con gusto te ayudaré. Antes de revisar la conexión, ¿la falla ocurre en el domicilio donde tienes instalado el servicio?",
+          "provider": "guided",
+          "state": "START",
+          "ticketCandidate": false
+        },
+        {
+          "message": "si, en mi casa",
+          "response": "Como cerca del router funciona bien y en tu cuarto va lento, parece un problema de cobertura WiFi: las paredes y otros obstáculos pueden debilitar la señal. Prueba usar el dispositivo en una zona del cuarto con menos obstáculos hacia el router, sin mover el equipo ni la fibra. Si necesitas mejorar la cobertura de forma permanente, se puede evaluar un punto de acceso adicional.",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "por que pasa si tengo fibra?",
+          "response": "La fibra lleva internet hasta tu router, pero el WiFi es la conexión inalámbrica desde el router hasta tu dispositivo. Esa señal pierde fuerza con la distancia, las paredes y las interferencias, aunque tengas fibra. Como cerca del router funciona bien y en tu cuarto va lento, lo que describes apunta a una limitación de cobertura WiFi, no necesariamente a una falla de la fibra.\n\nFuentes: [1](https://www.tp-link.com/es/support/faq/468/?utm_source=openai) · [2](https://www.tp-link.com/es/support/faq/2435/?utm_source=openai)",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "verified",
+            "topic": "wifi",
+            "usageId": "3",
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "ya use el equipo cerca del router y ahora funciona bien, gracias",
+          "response": "¡Qué bueno que ahora funciona bien! Eso apunta a una limitación de cobertura WiFi en tu cuarto, no necesariamente a una falla de la fibra. Si necesitas usarlo allí, podemos orientarte para mejorar la cobertura.",
+          "provider": "openai",
+          "state": "FINISHED",
+          "web": {
+            "status": "verified",
+            "topic": "equipment",
+            "usageId": "5",
+            "cached": false
+          },
+          "ticketCandidate": false
+        }
+      ],
+      "issues": [],
+      "source": "C:\\Users\\LUIS\\OneDrive - Escuela Militar de Ingenieria\\Documents\\10mo semestre\\TRABAJO DE GRADO II\\SistemaFTTH-integrado\\SistemaFTTH\\tmp\\conversaciones-web-1792014401570\\resultados.json"
+    },
+    {
+      "name": "06 · Planes y tarifas actuales",
+      "fixture": false,
+      "turns": [
+        {
+          "message": "hola",
+          "response": "¡Hola! ¿En qué puedo ayudarte con tu servicio de internet o con la aplicación?",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "cuanto cuesta el plan de fibra de 100 megas de ENTEL?",
+          "response": "En la página oficial consultada no aparece un plan de 100 Mbps. El más cercano es el Simple S, de 120 Mbps, con una tarifa publicada de Bs169 al mes. Está sujeto a factibilidad técnica en tu domicilio; el precio y las condiciones deben confirmarse al contratar.\n\nFuentes: [1](https://www.entel.bo/HogarInternetFibra?utm_source=openai)",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "verified",
+            "topic": "plans",
+            "usageId": "2",
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "el precio incluye instalacion?",
+          "response": "La página oficial consultada no indica si la instalación está incluida ni confirma un cargo por ella. Los Bs169 corresponden a la tarifa mensual del plan Simple S de 120 Mbps; antes de contratar, debes confirmar con ENTEL si hay un costo de instalación para tu domicilio.\n\nFuentes: [1](https://www.entel.bo/HogarInternetFibra?utm_source=openai)",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "verified",
+            "topic": "plans",
+            "usageId": "2",
+            "cached": true
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "puedes cambiarme el plan desde aqui?",
+          "response": "No puedo cambiar tu plan desde este chat; la aplicación no permite gestionar planes contratados. El cambio debe solicitarse a ENTEL por sus canales comerciales oficiales, donde podrán confirmar las opciones disponibles, el precio y las condiciones para tu servicio.",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "verified",
+            "topic": "plans",
+            "usageId": "2",
+            "cached": true
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "gracias, consultare con atencion comercial",
+          "response": "¡De nada! En atención comercial podrán confirmarte las opciones y condiciones para cambiar tu plan.",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        }
+      ],
+      "issues": [],
+      "source": "C:\\Users\\LUIS\\OneDrive - Escuela Militar de Ingenieria\\Documents\\10mo semestre\\TRABAJO DE GRADO II\\SistemaFTTH-integrado\\SistemaFTTH\\tmp\\conversaciones-web-1792014474745\\resultados.json"
+    },
+    {
+      "name": "07 · Reclamos y evidencias en el sistema",
+      "fixture": false,
+      "turns": [
+        {
+          "message": "buenas",
+          "response": "¡Buenas! ¿En qué puedo ayudarte con tu servicio de internet o con la aplicación?",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "como veo mis reclamos en este sistema?",
+          "response": "Entra a «Mis tickets» y selecciona el reclamo que quieras consultar. Allí podrás ver su estado, detalles, historial y evidencias; si tiene un técnico asignado, también aparecerán sus datos.",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "puedo adjuntar un video y de cuanto tamaño?",
+          "response": "Sí, puedes adjuntar un video en formato MP4 de hasta 10 MB a tu conversación o a un ticket propio. Se permite un archivo por carga.",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "como veo quien es mi tecnico?",
+          "response": "Entra a «Mis tickets» y abre el reclamo que quieres consultar. Si ya tiene un técnico asignado, sus datos aparecerán en el detalle del ticket.",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "gracias, ya encontre Mis tickets",
+          "response": "¡De nada! Desde allí puedes abrir tu reclamo y consultar los detalles de la atención.",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        }
+      ],
+      "issues": [],
+      "source": "C:\\Users\\LUIS\\OneDrive - Escuela Militar de Ingenieria\\Documents\\10mo semestre\\TRABAJO DE GRADO II\\SistemaFTTH-integrado\\SistemaFTTH\\tmp\\conversaciones-web-1792014026602\\resultados.json"
+    },
+    {
+      "name": "08 · Cuenta y recuperación de acceso",
+      "fixture": false,
+      "turns": [
+        {
+          "message": "hola",
+          "response": "¡Hola! ¿En qué puedo ayudarte con tu servicio de internet o con la aplicación?",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "olvide la contraseña para entrar al sistema",
+          "response": "En la pantalla de acceso, selecciona «¿Olvidaste tu contraseña?» y sigue las instrucciones para recuperar el acceso. Desde este chat no puedo cambiar tu contraseña; no la compartas aquí.",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "puedes cambiarla por mi desde aqui?",
+          "response": "No puedo cambiar tu contraseña desde este chat. Para recuperarla, selecciona «¿Olvidaste tu contraseña?» en la pantalla de acceso y sigue las instrucciones. No compartas tu contraseña aquí.",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "eso cambia tambien la contraseña de mi wifi?",
+          "response": "No, recuperar la contraseña del sistema no cambia la de tu WiFi. Son distintas: una sirve para entrar a la aplicación y la otra para conectar tus dispositivos a la red WiFi.",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "gracias, usare la opcion de recuperar contraseña",
+          "response": "¡De nada! Usa «¿Olvidaste tu contraseña?» en la pantalla de acceso y sigue las instrucciones.",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        }
+      ],
+      "issues": [],
+      "source": "C:\\Users\\LUIS\\OneDrive - Escuela Militar de Ingenieria\\Documents\\10mo semestre\\TRABAJO DE GRADO II\\SistemaFTTH-integrado\\SistemaFTTH\\tmp\\conversaciones-web-1792014026602\\resultados.json"
+    },
+    {
+      "name": "09 · Estado y visita de un ticket propio",
+      "fixture": true,
+      "turns": [
+        {
+          "message": "hola",
+          "response": "¡Hola! ¿En qué puedo ayudarte con tu servicio de internet o con la aplicación?",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "como esta mi reclamo?",
+          "response": "Tu reclamo TK-PRUEBA figura como pendiente.",
+          "provider": "local",
+          "fallback": "AUTHORITATIVE_TICKET_LOOKUP",
+          "state": "START",
+          "ticketCandidate": false
+        },
+        {
+          "message": "cuando viene el tecnico?",
+          "response": "Tu reclamo TK-PRUEBA figura como pendiente. Todavía no hay una fecha de visita registrada.",
+          "provider": "local",
+          "fallback": "AUTHORITATIVE_TICKET_LOOKUP",
+          "state": "START",
+          "ticketCandidate": false
+        },
+        {
+          "message": "puedes adelantar la visita para hoy?",
+          "response": "No puedo adelantar ni programar una visita desde el chat, y no hay una fecha de visita registrada. El personal de atención coordina las visitas según disponibilidad; no puedo garantizar que sea hoy. Puedes consultar en «Mis tickets» si se actualiza la atención de tu reclamo.",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "gracias, revisare la fecha en Mis tickets",
+          "response": "De nada. En «Mis tickets» podrás consultar las actualizaciones de tu reclamo y la fecha de visita si llega a registrarse.",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        }
+      ],
+      "issues": [],
+      "source": "C:\\Users\\LUIS\\OneDrive - Escuela Militar de Ingenieria\\Documents\\10mo semestre\\TRABAJO DE GRADO II\\SistemaFTTH-integrado\\SistemaFTTH\\tmp\\conversaciones-web-1792014026602\\resultados.json"
+    },
+    {
+      "name": "10 · Reinicio, RESET y continuidad",
+      "fixture": false,
+      "turns": [
+        {
+          "message": "buenos dias",
+          "response": "¡Buenos días! ¿En qué puedo ayudarte con tu servicio de internet o con la aplicación?",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "si reinicio el router se borra mi wifi?",
+          "response": "No, reiniciar el router apagándolo y encendiéndolo conserva el nombre y la contraseña de tu WiFi. No pulses el botón RESET: restaurar el equipo de fábrica sí puede borrar su configuración. Para reiniciarlo, desconecta solo la corriente durante un minuto, vuelve a conectarla y espera hasta tres minutos; no desconectes la fibra.\n\nFuentes: [1](https://www.tp-link.com/us/user-guides/tl-wr841n_v14/chapter-4-configure-the-router-in-wireless-router-mode?utm_source=openai) · [2](https://www.tp-link.com/es/support/faq/497/?utm_source=openai)",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "verified",
+            "topic": "restart",
+            "usageId": "2",
+            "cached": false
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "y si mantengo presionado RESET?",
+          "response": "Mantener presionado RESET puede restaurar el router de fábrica y borrar su configuración, incluido el nombre y la contraseña del WiFi y los ajustes de internet. El efecto depende del modelo, así que no lo mantengas presionado. Para reiniciar sin borrar los ajustes, desconecta solo la corriente durante un minuto, vuelve a conectarla y espera hasta tres minutos; no desconectes la fibra.\n\nFuentes: [1](https://www.tp-link.com/es/support/faq/140/?utm_source=openai) · [2](https://www.tp-link.com/es/support/faq/497/?utm_source=openai)",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "verified",
+            "topic": "restart",
+            "usageId": "2",
+            "cached": true
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "entonces como hago un reinicio normal?",
+          "response": "Para hacer un reinicio normal sin borrar la configuración de tu WiFi:\n1. Desconecta únicamente el cable de corriente del router y espera un minuto.\n2. Vuelve a conectarlo y espera hasta tres minutos para que arranque.\nNo pulses RESET ni desconectes el cable de fibra.",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "verified",
+            "topic": "restart",
+            "usageId": "2",
+            "cached": true
+          },
+          "ticketCandidate": false
+        },
+        {
+          "message": "entendido, gracias",
+          "response": "¡De nada!",
+          "provider": "openai",
+          "state": "START",
+          "web": {
+            "status": "not_needed",
+            "topic": null,
+            "cached": false
+          },
+          "ticketCandidate": false
+        }
+      ],
+      "issues": [],
+      "source": "C:\\Users\\LUIS\\OneDrive - Escuela Militar de Ingenieria\\Documents\\10mo semestre\\TRABAJO DE GRADO II\\SistemaFTTH-integrado\\SistemaFTTH\\tmp\\conversaciones-web-1792014439730\\resultados.json"
+    }
+  ]
+}

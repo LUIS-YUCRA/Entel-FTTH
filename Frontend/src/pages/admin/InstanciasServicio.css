@@ -1,0 +1,6 @@
+.service-instance-form { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 18px; margin: 24px 0; padding: 22px; border: 1px solid #dce6ef; border-radius: 14px; background: white; box-shadow: 0 6px 22px #173c7a0a; }
+.service-instance-form label { display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: #284260; }
+.service-instance-form input:not([type=checkbox]), .service-instance-form select { width: 100%; box-sizing: border-box; min-height: 42px; padding: 10px; border: 1px solid #c7d5e3; border-radius: 7px; background: #fff; font: inherit; }
+.service-instance-form input[type=checkbox] { align-self: flex-start; }
+.service-instance-form button { border: 0; border-radius: 8px; background: #2257aa; color: white; min-height: 42px; padding: 10px 18px; align-self: end; font: inherit; cursor: pointer; }
+.service-instance-form button:disabled { opacity: .6; cursor: default; }

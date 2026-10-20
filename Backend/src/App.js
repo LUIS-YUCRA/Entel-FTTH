@@ -59,10 +59,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/conversations', conversationRoutes);
+app.use('/api/assistant-knowledge', require('./routes/AssistantKnowledgeRoutes'));
 app.use('/api/evidences', evidenceRoutes);
 app.use('/api/clientes', clientesRoutes);
 app.use('/api/password', passwordRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/service-instances', require('./routes/ServiceInstanceRoutes'));
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/notifications', notificationRoutes);
 

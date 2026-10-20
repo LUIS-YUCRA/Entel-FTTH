@@ -1,0 +1,9 @@
+{
+  "version": "impact-2026-10-v4-severity-category",
+  "outageHighHours": 4,
+  "persistentHighHours": 48,
+  "criticalCategories": ["INSTITUCION", "NEGOCIO", "COLEGIO", "EMPRESA", "INSTITUCION_PUBLICA", "INSTITUCION_PRIVADA"],
+  "outageCodes": ["SIN_INTERNET", "ROUTER_DANADO", "PERDIDA_SENAL_OPTICA"],
+  "safetyCodes": ["ELECTRICAL_STORM_DAMAGE"],
+  "minorCodes": ["WIFI_COBERTURA", "COBERTURA_WIFI", "WIFI_PASSWORD", "CONSULTA_GENERAL"]
+}
